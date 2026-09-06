@@ -161,6 +161,7 @@ function registerHref({
 	const url = new URL(REGISTER_BASE)
 	const normalizedReturnTo = absoluteReturnTo(returnTo)
 	if (normalizedReturnTo) url.searchParams.set("returnTo", normalizedReturnTo)
+	url.searchParams.set("state", "KS")
 	url.searchParams.set("source", "organic_conversion_cta")
 	url.searchParams.set("source_page_type", pageType)
 	if (entityId != null) url.searchParams.set("source_entity_id", String(entityId))

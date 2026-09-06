@@ -1,0 +1,1239 @@
+/*
+ * Future Wells design system — ported from coloradoMarketing (app/future.css)
+ * for KS-18. This is the same visual system (tokens, typography, spacing,
+ * card/button/nav/footer shapes) used across the Future Wells sibling
+ * marketing sites, not a Kansas-specific fork. Only content (copy, links,
+ * hero graphic) differs from Colorado's version.
+ *
+ * Trimmed from Colorado's ~7,000-line stylesheet down to the classes this
+ * site's pages actually use: Colorado's copy also carries a large Bootstrap-
+ * derived vendor theme (public/assets/css/main.css) and legacy
+ * aos/gsap/swiper/isotope template dependencies for its full data-app pages
+ * (map, wells, operators, counties, fields) that this editorial-only site
+ * has no equivalent of and does not need. The `--tc-*` token block below is
+ * the one small slice of that vendor file this design actually depends on
+ * (typography scale + base colors), copied verbatim.
+ *
+ * Note: neither Colorado nor this port loads a real "Roboto" font file
+ * anywhere (no @font-face, no Google Fonts link) despite declaring it as
+ * --tc-body-font-family — browsers silently fall back to the system sans
+ * stack. Kept identical here rather than "fixed," since diverging from
+ * Colorado's actual rendered look was not the goal.
+ */
+
+:root {
+	--tc-body-font-family: "Roboto", sans-serif;
+	--tc-heading-font-family: "Roboto", sans-serif;
+	--tc-fw-black: 900;
+	--tc-fw-extra-bold: 800;
+	--tc-fw-bold: 700;
+	--tc-fw-semi-bold: 600;
+	--tc-fw-medium: 500;
+	--tc-fw-regular: 400;
+}
+
+.fwt-page {
+	--fwt-navy: #08111f;
+	--fwt-navy-2: #101b2d;
+	--fwt-gold: #c79a45;
+	--fwt-gold-2: #f1d08a;
+	--fwt-ink: #152033;
+	--fwt-muted: #657083;
+	--fwt-line: rgba(8, 17, 31, 0.12);
+	background: #f5f2ec;
+	color: var(--fwt-ink);
+	min-height: 100vh;
+	min-width: 0;
+	overflow-x: clip;
+	font-family: var(--tc-body-font-family), Arial, sans-serif;
+}
+
+body {
+	overflow-x: clip;
+}
+
+/* ---------------------------------------------------------------------
+ * Narrow-copy variant ("nm-*") — used for flat editorial pages
+ * (methodology, data sources) that don't need the full hero treatment.
+ * --------------------------------------------------------------------- */
+
+.nm-section {
+	padding: 56px 0;
+}
+
+.nm-container {
+	width: min(1080px, calc(100% - 32px));
+	margin: 0 auto;
+}
+
+.nm-eyebrow {
+	display: inline-block;
+	margin-bottom: 10px;
+	color: #8a6828;
+	font-size: 12px;
+	font-weight: 900;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+}
+
+.nm-section h1 {
+	max-width: 780px;
+	margin: 0 0 14px;
+	font-size: clamp(34px, 5vw, 58px);
+	line-height: 1.04;
+}
+
+.nm-section p {
+	max-width: 760px;
+	color: var(--fwt-muted);
+	line-height: 1.65;
+}
+
+.nm-meta-list {
+	display: grid;
+	grid-template-columns: minmax(120px, 0.38fr) minmax(0, 1fr);
+	gap: 8px 14px;
+	margin: 18px 0 0;
+}
+
+.nm-meta-list dt {
+	color: #64748b;
+	font-size: 13px;
+	font-weight: 800;
+}
+
+.nm-meta-list dd {
+	min-width: 0;
+	margin: 0;
+	overflow-wrap: anywhere;
+	color: #1f2937;
+}
+
+/* ---------------------------------------------------------------------
+ * Navigation
+ * --------------------------------------------------------------------- */
+
+.fwt-container {
+	width: min(1160px, calc(100% - 32px));
+	margin: 0 auto;
+}
+
+.fwt-nav {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	background: rgba(8, 17, 31, 0.96);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(12px);
+}
+
+.fwt-nav-inner {
+	min-height: 76px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 24px;
+}
+
+.fwt-brand {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	color: #fff;
+	font-weight: 800;
+	letter-spacing: 0.02em;
+	text-decoration: none;
+}
+
+.fwt-mark {
+	width: 38px;
+	height: 38px;
+	border: 1px solid rgba(241, 208, 138, 0.45);
+	display: grid;
+	place-items: center;
+	color: var(--fwt-gold-2);
+	background: rgba(199, 154, 69, 0.1);
+}
+
+.fwt-nav-links {
+	display: flex;
+	align-items: center;
+	gap: 22px;
+}
+
+.fwt-nav-links a {
+	color: rgba(255, 255, 255, 0.82);
+	font-size: 13px;
+	text-transform: uppercase;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-decoration: none;
+}
+
+.fwt-nav-links a:hover {
+	color: #fff;
+}
+
+.fwt-nav-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	align-items: center;
+}
+
+.fwt-nav-desktop {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 24px;
+	flex: 1;
+}
+
+.fwt-mobile-nav {
+	display: none;
+	position: relative;
+}
+
+.fwt-mobile-nav summary {
+	display: grid;
+	place-items: center;
+	width: 44px;
+	height: 44px;
+	border: 1px solid rgba(255, 255, 255, 0.22);
+	background: rgba(255, 255, 255, 0.04);
+	cursor: pointer;
+	list-style: none;
+}
+
+.fwt-mobile-nav summary::-webkit-details-marker {
+	display: none;
+}
+
+.fwt-mobile-nav summary span {
+	display: block;
+	width: 20px;
+	height: 2px;
+	margin: 2px 0;
+	background: #ffffff;
+}
+
+.fwt-mobile-nav-menu {
+	position: absolute;
+	top: calc(100% + 12px);
+	right: 0;
+	z-index: 20;
+	display: grid;
+	gap: 16px;
+	width: min(300px, calc(100vw - 32px));
+	padding: 16px;
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	background: rgba(8, 17, 31, 0.98);
+	box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+}
+
+.fwt-mobile-nav-menu .fwt-nav-links {
+	display: grid;
+	gap: 12px;
+}
+
+.fwt-mobile-nav-menu .fwt-nav-actions {
+	display: grid;
+	align-items: stretch;
+}
+
+/* ---------------------------------------------------------------------
+ * Breadcrumbs
+ * --------------------------------------------------------------------- */
+
+.fwt-breadcrumbs {
+	background: #f8fafc;
+	border-bottom: 1px solid #e2e8f0;
+	color: #64748b;
+	font-size: 0.875rem;
+}
+
+.fwt-breadcrumbs ol {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+	list-style: none;
+	margin: 0;
+	padding: 0.85rem 0;
+}
+
+.fwt-breadcrumbs li {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+}
+
+.fwt-breadcrumbs li + li::before {
+	color: #94a3b8;
+	content: "/";
+}
+
+.fwt-breadcrumbs a {
+	color: #0f766e;
+	text-decoration: none;
+}
+
+/* ---------------------------------------------------------------------
+ * Buttons
+ * --------------------------------------------------------------------- */
+
+.fwt-btn {
+	position: relative;
+	z-index: 1;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 44px;
+	padding: 0 18px;
+	border: 1px solid rgba(8, 17, 31, 0.16);
+	background: #fff;
+	color: var(--fwt-navy);
+	font-weight: 800;
+	font-size: 14px;
+	text-decoration: none;
+	cursor: pointer;
+	touch-action: manipulation;
+}
+
+.fwt-btn.gold {
+	border-color: var(--fwt-gold);
+	background: var(--fwt-gold);
+	color: #111827;
+}
+
+.fwt-btn.dark {
+	background: var(--fwt-navy);
+	color: #fff;
+	border-color: var(--fwt-navy);
+}
+
+.fwt-btn.light {
+	background: #fff;
+	color: var(--fwt-navy);
+	border-color: rgba(8, 17, 31, 0.16);
+}
+
+.fwt-btn.ghost {
+	background: transparent;
+	color: #fff;
+	border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* ---------------------------------------------------------------------
+ * Hero
+ * --------------------------------------------------------------------- */
+
+.fwt-hero {
+	position: relative;
+	background: linear-gradient(120deg, var(--fwt-navy) 0%, var(--fwt-navy-2) 100%);
+	color: #fff;
+	padding: 92px 0 58px;
+	overflow: hidden;
+}
+
+.fwt-hero-grid {
+	display: grid;
+	grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+	gap: 42px;
+	align-items: center;
+}
+
+.fwt-eyebrow {
+	color: var(--fwt-gold);
+	font-size: 12px;
+	text-transform: uppercase;
+	font-weight: 900;
+	letter-spacing: 0.16em;
+	display: inline-block;
+}
+
+.fwt-hero h1,
+.fwt-section h1,
+.fwt-section h2 {
+	font-family: var(--tc-heading-font-family), Arial, sans-serif;
+	letter-spacing: 0;
+}
+
+.fwt-hero h1 {
+	font-size: clamp(44px, 6vw, 78px);
+	line-height: 0.98;
+	max-width: 760px;
+	margin: 18px 0;
+	color: #fff;
+}
+
+.fwt-hero p {
+	max-width: 650px;
+	color: rgba(255, 255, 255, 0.78);
+	font-size: 18px;
+	line-height: 1.6;
+}
+
+.fwt-hero-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-top: 28px;
+}
+
+.fwt-map-card {
+	background: rgba(255, 255, 255, 0.08);
+	border: 1px solid rgba(255, 255, 255, 0.14);
+	padding: 18px;
+	box-shadow: 0 30px 90px rgba(0, 0, 0, 0.25);
+}
+
+/* ---------------------------------------------------------------------
+ * Hero map illustration (Kansas outline + activity dots)
+ * --------------------------------------------------------------------- */
+
+.fwt-map-preview {
+	position: relative;
+	min-height: 455px;
+	background:
+		linear-gradient(90deg, rgba(15, 23, 42, 0.05) 1px, transparent 1px) 0 0 / 19% 100%,
+		linear-gradient(180deg, rgba(15, 23, 42, 0.05) 1px, transparent 1px) 0 0 / 100% 20%,
+		linear-gradient(135deg, #f4f1ea 0%, #e7ede8 46%, #d9e4e0 100%);
+	overflow: hidden;
+	border: 1px solid rgba(241, 208, 138, 0.25);
+}
+
+.fwt-hero-map-canvas {
+	position: absolute;
+	inset: 0;
+	overflow: hidden;
+}
+
+.fwt-hero-ks-outline {
+	position: absolute;
+	left: 6%;
+	top: 22%;
+	width: 88%;
+	height: 46%;
+	border: 2px solid rgba(15, 23, 42, 0.18);
+	background: rgba(255, 255, 255, 0.3);
+	/* Kansas is very close to a rectangle; the only real notch is the
+	   southeast corner cut where the Missouri/Oklahoma borders meet. */
+	clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 82% 100%, 82% 88%, 100% 88%, 100% 100%, 0% 100%);
+	box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.42), 0 18px 44px rgba(15, 23, 42, 0.14);
+}
+
+.fwt-hero-region-band.is-sw-gas {
+	position: absolute;
+	left: 4%;
+	top: 46%;
+	width: 26%;
+	height: 26%;
+	background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(199, 154, 69, 0.08));
+	border: 1px solid rgba(245, 158, 11, 0.2);
+	border-radius: 44% 56% 48% 52%;
+	transform: rotate(-6deg);
+}
+
+.fwt-hero-region-band.is-central-oil {
+	position: absolute;
+	left: 34%;
+	top: 26%;
+	width: 34%;
+	height: 30%;
+	background: linear-gradient(135deg, rgba(124, 58, 237, 0.14), rgba(20, 184, 166, 0.07));
+	border: 1px solid rgba(124, 58, 237, 0.16);
+	border-radius: 48% 52% 46% 54%;
+	transform: rotate(4deg);
+}
+
+.fwt-hero-map-label {
+	position: absolute;
+	z-index: 1;
+	transform: translate(-50%, -50%);
+	color: rgba(15, 23, 42, 0.48);
+	font-size: 10px;
+	font-weight: 800;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+.fwt-hero-map-label.is-emphasis {
+	color: rgba(124, 58, 237, 0.6);
+	font-size: 13px;
+}
+
+.fwt-hero-map-shade {
+	position: absolute;
+	inset: 0;
+	background:
+		linear-gradient(180deg, rgba(8, 17, 31, 0.02), rgba(8, 17, 31, 0.18)),
+		radial-gradient(circle at 18% 68%, rgba(245, 158, 11, 0.14), transparent 30%),
+		radial-gradient(circle at 55% 38%, rgba(124, 58, 237, 0.12), transparent 28%);
+	pointer-events: none;
+}
+
+.fwt-map-region-label {
+	position: absolute;
+	top: 18px;
+	left: 18px;
+	z-index: 1;
+	max-width: min(280px, calc(100% - 36px));
+	border: 1px solid rgba(8, 17, 31, 0.1);
+	background: rgba(255, 255, 255, 0.9);
+	padding: 12px 14px;
+	color: var(--fwt-ink);
+	box-shadow: 0 14px 34px rgba(8, 17, 31, 0.12);
+}
+
+.fwt-map-region-label strong,
+.fwt-map-region-label span {
+	display: block;
+}
+
+.fwt-map-region-label strong {
+	font-size: 14px;
+	line-height: 1.2;
+}
+
+.fwt-map-region-label span {
+	margin-top: 4px;
+	color: var(--fwt-muted);
+	font-size: 12px;
+}
+
+.fwt-hero-map-point {
+	position: absolute;
+	z-index: 1;
+	width: 12px;
+	height: 12px;
+	border-radius: 999px;
+	border: 2px solid #fff;
+	box-shadow: 0 0 0 8px rgba(15, 23, 42, 0.12), 0 8px 18px rgba(15, 23, 42, 0.28);
+	transform: translate(-50%, -50%);
+}
+
+.fwt-hero-map-point.is-gas {
+	background: #f59e0b;
+}
+
+.fwt-hero-map-point.is-oil {
+	background: #7c3aed;
+}
+
+.fwt-map-stat {
+	position: absolute;
+	right: 18px;
+	bottom: 18px;
+	left: 18px;
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 8px;
+}
+
+.fwt-map-stat span {
+	background: rgba(8, 17, 31, 0.9);
+	border: 1px solid rgba(255, 255, 255, 0.18);
+	padding: 10px;
+	color: rgba(255, 255, 255, 0.7);
+	font-size: 12px;
+	backdrop-filter: blur(8px);
+}
+
+.fwt-map-stat strong {
+	display: block;
+	color: #fff;
+	font-size: 20px;
+}
+
+/* ---------------------------------------------------------------------
+ * Sections, headers, grids
+ * --------------------------------------------------------------------- */
+
+.fwt-section {
+	padding: 82px 0;
+}
+
+.fwt-section.dark {
+	background: var(--fwt-navy);
+	color: #fff;
+}
+
+.fwt-section.gold-strip {
+	background: #ead5a6;
+	color: #1a2433;
+	padding: 28px 0;
+}
+
+.fwt-section.fwt-cta-band {
+	background: #efe7d8;
+	padding: 54px 0;
+}
+
+.fwt-section.fwt-product-cta {
+	background: #101b2d;
+	color: #fff;
+	padding: 52px 0;
+	border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.fwt-product-cta-inner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 28px;
+}
+
+.fwt-product-actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 10px;
+}
+
+.fwt-product-actions .fwt-btn {
+	min-width: 220px;
+	justify-content: center;
+}
+
+.fwt-product-cta h2 {
+	color: #fff;
+	font-size: clamp(30px, 3.2vw, 46px);
+	line-height: 1.04;
+	margin: 10px 0 12px;
+}
+
+.fwt-product-cta p {
+	max-width: 660px;
+	margin: 0;
+	color: rgba(255, 255, 255, 0.72);
+	line-height: 1.65;
+}
+
+.fwt-section-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-end;
+	gap: 24px;
+	margin-bottom: 34px;
+}
+
+.fwt-section-header.compact {
+	margin-bottom: 22px;
+}
+
+.fwt-section-header.compact h2 {
+	font-size: clamp(26px, 2.4vw, 34px);
+}
+
+.fwt-section-header h1,
+.fwt-section-header h2 {
+	font-size: clamp(34px, 4vw, 54px);
+	line-height: 1.04;
+	margin: 0;
+}
+
+.fwt-section-header p {
+	max-width: 620px;
+	color: var(--fwt-muted);
+	line-height: 1.65;
+	margin: 0;
+}
+
+.fwt-section.dark .fwt-section-header p,
+.fwt-section.dark p {
+	color: rgba(255, 255, 255, 0.72);
+}
+
+.fwt-section.dark h1,
+.fwt-section.dark h2,
+.fwt-section.dark .fwt-section-header h1,
+.fwt-section.dark .fwt-section-header h2 {
+	color: #fff;
+}
+
+.fwt-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 14px;
+	align-items: stretch;
+}
+
+.fwt-grid.two {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.fwt-grid > .fwt-card {
+	height: auto;
+}
+
+/* ---------------------------------------------------------------------
+ * Cards
+ * --------------------------------------------------------------------- */
+
+.fwt-card {
+	background: #fff;
+	border: 1px solid var(--fwt-line);
+	padding: 22px;
+	min-height: 168px;
+}
+
+.dark .fwt-card,
+.fwt-section.dark .fwt-card {
+	background: rgba(255, 255, 255, 0.06);
+	border-color: rgba(255, 255, 255, 0.12);
+	color: #fff;
+}
+
+.fwt-card b {
+	display: inline-flex;
+	color: var(--fwt-gold);
+	font-size: 13px;
+	text-transform: uppercase;
+	letter-spacing: 0.12em;
+	margin-bottom: 12px;
+}
+
+.fwt-card h3 {
+	font-size: 21px;
+	margin: 0 0 10px;
+	color: inherit;
+}
+
+.fwt-card p,
+.fwt-card li {
+	color: var(--fwt-muted);
+	line-height: 1.6;
+}
+
+.fwt-section.dark .fwt-card p,
+.fwt-section.dark .fwt-card li {
+	color: rgba(255, 255, 255, 0.72);
+}
+
+.fwt-card a {
+	position: relative;
+	z-index: 1;
+	color: var(--fwt-navy);
+	font-weight: 800;
+	text-decoration: underline;
+	text-decoration-color: rgba(199, 154, 69, 0.5);
+	text-underline-offset: 4px;
+	cursor: pointer;
+	touch-action: manipulation;
+}
+
+.fwt-card a.fwt-card-cta {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 44px;
+	margin-top: 14px;
+	padding: 0 18px;
+	border: 1px solid rgba(8, 17, 31, 0.18);
+	background: #fff;
+	color: var(--fwt-navy);
+	font-size: 14px;
+	font-weight: 800;
+	text-decoration: none;
+}
+
+.fwt-card a.fwt-card-cta:hover,
+.fwt-card a.fwt-card-cta:focus {
+	border-color: var(--fwt-gold);
+	background: #fff8e8;
+	color: #111827;
+}
+
+.fwt-section.dark .fwt-card a {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 42px;
+	margin-top: 14px;
+	border: 1px solid var(--fwt-gold);
+	background: var(--fwt-gold);
+	color: #111827;
+	padding: 0 18px;
+	font-size: 14px;
+	font-weight: 800;
+	text-decoration: none;
+}
+
+/* ---------------------------------------------------------------------
+ * Copy blocks, link lists, FAQ, disclaimer
+ * --------------------------------------------------------------------- */
+
+.fwt-copy {
+	background: #fff;
+	border: 1px solid var(--fwt-line);
+	padding: 34px;
+}
+
+.fwt-copy p,
+.fwt-copy li {
+	color: var(--fwt-muted);
+	line-height: 1.75;
+}
+
+.fwt-copy h2,
+.fwt-copy h3 {
+	color: var(--fwt-ink);
+	margin-top: 0;
+}
+
+.fwt-copy li + li,
+.fwt-copy p + h2,
+.fwt-copy ul + h2 {
+	margin-top: 22px;
+}
+
+.fwt-link-list {
+	display: grid;
+	gap: 12px;
+	margin-top: 20px;
+}
+
+.fwt-link-list a {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 16px 18px;
+	background: #fff;
+	border: 1px solid var(--fwt-line);
+	color: var(--fwt-ink);
+	font-weight: 800;
+	cursor: pointer;
+	touch-action: manipulation;
+}
+
+.fwt-link-list a span {
+	color: var(--fwt-muted);
+	font-weight: 500;
+}
+
+.fwt-faq-section {
+	background: #fbfaf7;
+	border-top: 1px solid var(--fwt-line);
+	border-bottom: 1px solid var(--fwt-line);
+}
+
+.fwt-faq-list {
+	display: grid;
+	gap: 12px;
+}
+
+.fwt-faq-item {
+	background: #fff;
+	border: 1px solid var(--fwt-line);
+	padding: 24px 26px;
+}
+
+.fwt-faq-item h3 {
+	color: var(--fwt-ink);
+	font-size: 20px;
+	margin: 0 0 10px;
+}
+
+.fwt-faq-item p {
+	color: var(--fwt-muted);
+	line-height: 1.65;
+	margin: 0;
+}
+
+.fwt-disclaimer {
+	font-size: 13px;
+	line-height: 1.55;
+	margin: 0;
+}
+
+/* ---------------------------------------------------------------------
+ * Guide index + guide article ("county-hero" shape, reused for guides
+ * since Colorado's own guide pages reuse it too)
+ * --------------------------------------------------------------------- */
+
+.fwt-guide-index {
+	display: grid;
+	gap: 26px;
+}
+
+.fwt-guide-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+	gap: 22px;
+	align-items: start;
+}
+
+.fwt-guide-card {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 0;
+	min-height: 0;
+	height: auto !important;
+}
+
+.fwt-guide-card h2 {
+	margin: 0 0 8px;
+	color: var(--fwt-ink);
+	font-size: 22px;
+	line-height: 1.15;
+}
+
+.fwt-guide-card h3 {
+	font-size: clamp(20px, 2vw, 26px);
+	line-height: 1.12;
+	margin: 0 0 10px;
+}
+
+.fwt-guide-card p {
+	margin: 0 0 14px;
+}
+
+.fwt-guide-card .fwt-guide-source {
+	margin-top: 8px;
+	font-size: 13px;
+}
+
+.fwt-county-hero {
+	background: linear-gradient(135deg, #f8fafc 0%, #eef6f1 48%, #f7f0e6 100%);
+	border-bottom: 1px solid var(--fwt-line);
+	padding: 74px 0 48px;
+}
+
+.fwt-county-hero-grid {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+	gap: 32px;
+	align-items: start;
+}
+
+.fwt-county-hero h1 {
+	max-width: 900px;
+	margin: 0 0 16px;
+	font-size: clamp(36px, 5vw, 64px);
+	line-height: 1;
+}
+
+.fwt-county-hero p {
+	max-width: 760px;
+	color: var(--fwt-muted);
+	font-size: 18px;
+	line-height: 1.65;
+}
+
+.fwt-county-kpis {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 12px;
+}
+
+.fwt-county-kpis > div {
+	border: 1px solid var(--fwt-line);
+	background: rgba(255, 255, 255, 0.82);
+	padding: 16px;
+}
+
+.fwt-county-kpis span {
+	display: block;
+	color: var(--fwt-muted);
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.fwt-county-kpis strong {
+	display: block;
+	margin-top: 6px;
+}
+
+.fwt-county-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+	gap: 32px;
+	align-items: start;
+}
+
+.fwt-county-main,
+.fwt-county-aside {
+	display: grid;
+	gap: 18px;
+}
+
+.fwt-county-aside {
+	position: sticky;
+	top: 92px;
+	align-self: start;
+	max-height: calc(100vh - 116px);
+	overflow-y: auto;
+	padding-right: 4px;
+	scrollbar-gutter: stable;
+}
+
+.fwt-county-panel {
+	border: 1px solid var(--fwt-line);
+	background: #fff;
+	padding: 22px;
+}
+
+.fwt-activity-date-links {
+	display: grid;
+	gap: 10px;
+}
+
+.fwt-activity-date-links a {
+	border: 1px solid rgba(8, 17, 31, 0.1);
+	background: #f8fafc;
+	color: var(--fwt-ink);
+	padding: 12px;
+	font-weight: 800;
+	text-decoration: none;
+}
+
+/* ---------------------------------------------------------------------
+ * Contact page
+ * --------------------------------------------------------------------- */
+
+.fwt-contact-section {
+	background: #fbfaf6;
+}
+
+.fwt-contact-layout {
+	display: grid;
+	grid-template-columns: minmax(280px, 0.85fr) minmax(320px, 1.15fr);
+	gap: 28px;
+	align-items: start;
+}
+
+.fwt-contact-info {
+	border: 1px solid rgba(8, 17, 31, 0.12);
+	background: #fff;
+	box-shadow: 0 18px 48px rgba(8, 17, 31, 0.08);
+	padding: 28px;
+}
+
+.fwt-contact-info h2 {
+	margin: 8px 0 12px;
+	font-size: clamp(28px, 3vw, 40px);
+	line-height: 1.08;
+}
+
+.fwt-contact-info p {
+	margin: 0 0 22px;
+	color: var(--fwt-muted);
+	line-height: 1.65;
+}
+
+.fwt-contact-info dl {
+	display: grid;
+	gap: 0;
+	margin: 0;
+}
+
+.fwt-contact-info dl > div {
+	display: grid;
+	grid-template-columns: 150px minmax(0, 1fr);
+	gap: 16px;
+	padding: 14px 0;
+	border-top: 1px solid rgba(8, 17, 31, 0.1);
+}
+
+.fwt-contact-info dt {
+	color: #657083;
+	font-size: 12px;
+	font-weight: 800;
+	text-transform: uppercase;
+}
+
+.fwt-contact-info dd {
+	margin: 0;
+	color: #172033;
+	font-weight: 800;
+}
+
+.fwt-contact-info a {
+	color: #0f766e;
+}
+
+/* ---------------------------------------------------------------------
+ * Footer
+ * --------------------------------------------------------------------- */
+
+.fwt-footer {
+	background: #050b14;
+	color: rgba(255, 255, 255, 0.74);
+	padding: 42px 0;
+}
+
+.fwt-footer-grid {
+	display: grid;
+	grid-template-columns: 1.3fr 0.9fr 0.9fr 1fr;
+	gap: 24px;
+}
+
+.fwt-footer a {
+	color: rgba(255, 255, 255, 0.8);
+	display: block;
+	margin: 8px 0;
+	text-decoration: none;
+}
+
+.fwt-social-links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin: 14px 0 4px;
+}
+
+.fwt-footer .fwt-social-links a {
+	align-items: center;
+	background: rgba(255, 255, 255, 0.08);
+	border: 1px solid rgba(255, 255, 255, 0.16);
+	border-radius: 999px;
+	color: #fff;
+	display: inline-flex;
+	font-size: 12px;
+	font-weight: 700;
+	height: 34px;
+	justify-content: center;
+	margin: 0;
+	width: 34px;
+}
+
+.fwt-social-links img {
+	height: 18px;
+	object-fit: contain;
+	width: 18px;
+}
+
+.fwt-footer .fwt-social-links a:hover {
+	background: rgba(255, 255, 255, 0.14);
+	border-color: rgba(255, 255, 255, 0.34);
+}
+
+.fwt-footer-heading {
+	color: #fff;
+}
+
+.fwt-footer-disclaimer {
+	margin-top: 1rem;
+}
+
+.fwt-footer-detail {
+	color: rgba(255, 255, 255, 0.66);
+	font-size: 14px;
+	line-height: 1.55;
+	margin: 8px 0 0;
+}
+
+.fwt-copyright {
+	margin: 18px 0 0;
+	color: rgba(255, 255, 255, 0.52);
+	font-size: 13px;
+}
+
+/* ---------------------------------------------------------------------
+ * RecordConversionCta (KS-M001 addendum) — folded in here so it shares
+ * the same tokens instead of the ad hoc overrides that used to live in
+ * globals.css. Not currently mounted on any page (no entity pages exist
+ * yet), kept working for whenever one is built.
+ * --------------------------------------------------------------------- */
+
+.fwt-record-inline-cta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 24px;
+	justify-content: space-between;
+	align-items: center;
+	border: 1px solid var(--fwt-line);
+	background: #fff;
+	padding: 28px;
+	margin: 24px 0;
+}
+
+.fwt-record-inline-benefits {
+	list-style: none;
+	padding: 0;
+	margin: 12px 0 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 16px;
+	font-size: 13px;
+	color: var(--fwt-muted);
+}
+
+.fwt-record-inline-benefits li::before {
+	content: "\2713 ";
+	color: var(--fwt-gold);
+}
+
+.fwt-record-inline-actions {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	align-items: flex-start;
+}
+
+.fwt-record-inline-secondary {
+	font-size: 13px;
+	color: var(--fwt-ink);
+}
+
+/* ---------------------------------------------------------------------
+ * Responsive collapse — single breakpoint, matching Colorado's.
+ * --------------------------------------------------------------------- */
+
+@media (max-width: 900px) {
+	.fwt-nav-inner {
+		grid-template-columns: minmax(0, 1fr) auto;
+		display: grid;
+		min-height: 64px;
+		gap: 12px;
+	}
+
+	.fwt-nav-desktop {
+		display: none;
+	}
+
+	.fwt-mobile-nav {
+		display: block;
+	}
+
+	.fwt-hero-grid,
+	.fwt-county-hero-grid,
+	.fwt-county-layout,
+	.fwt-grid,
+	.fwt-grid.two,
+	.fwt-contact-layout,
+	.fwt-footer-grid {
+		grid-template-columns: 1fr;
+		display: grid;
+	}
+
+	.fwt-contact-info {
+		padding: 20px;
+	}
+
+	.fwt-county-kpis {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.fwt-county-aside {
+		position: static;
+		max-height: none;
+		overflow: visible;
+		padding-right: 0;
+	}
+
+	.fwt-product-cta-inner {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.fwt-section-header {
+		display: grid;
+	}
+}

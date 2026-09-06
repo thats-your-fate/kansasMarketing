@@ -12,6 +12,7 @@ export const siteConfig = {
 	// than inventing one combined "official agency" label.
 	officialAgencyName: "Kansas Corporation Commission",
 	secondaryAgencyName: "Kansas Geological Survey",
+	activityPath: "/activity",
 }
 
 // This site is a regional SEO/lead-gen content site, not a data-product

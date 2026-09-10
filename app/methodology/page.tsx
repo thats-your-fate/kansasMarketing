@@ -28,8 +28,8 @@ const sections = [
 		"This site does not claim complete, real-time statewide coverage. Where a coverage note states an expected update cadence, that is a target refresh interval, not a guarantee that every source has been refreshed since that time.",
 	],
 	[
-		"Editorial content, not a data application",
-		`${siteConfig.brandName} publishes guides and coverage notes. It does not host a public well search, an interactive map, or browse-first well/operator/county/field directories. Interactive search, maps, saved watch areas, and monitoring for Kansas live inside Future Wells Co.`,
+		"Public cards, not a full data application",
+		`${siteConfig.brandName} publishes guides, coverage notes, and lightweight well/operator/county/field landing cards. It does not host public search, an interactive map, saved watch areas, or monitoring workflows; those live inside Future Wells Co.`,
 	],
 ]
 

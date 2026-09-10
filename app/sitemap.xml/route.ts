@@ -4,14 +4,12 @@ import { allExplainers } from "@/app/lib/explainers"
 export const dynamic = "force-static"
 
 /**
- * KS-18: lists exactly the approved marketing and guide pages this repo
- * builds — no wells/operators/counties/fields pages exist to include, by
- * design (see docs/architecture/kansas-marketing-boundary.md). Each guide
- * slug is derived from app/lib/explainers.ts, so a new published guide is
- * picked up automatically without a second list to keep in sync.
+ * Lists the approved marketing, guide, and lightweight entity-directory
+ * pages this repo builds. Dynamic well/operator/county/field detail cards
+ * are served on demand from the Kansas backend rather than enumerated here.
  */
 export function GET() {
-	const staticPaths = ["/", "/data", "/data-coverage", "/methodology", "/activity", "/guides", "/disclaimer", "/privacy", "/terms", "/contact"]
+	const staticPaths = ["/", "/browse", "/counties", "/operators", "/fields", "/data", "/data-coverage", "/methodology", "/activity", "/guides", "/disclaimer", "/privacy", "/terms", "/contact"]
 	const guidePaths = allExplainers().map((explainer) => explainer.href)
 	const urls = [...staticPaths, ...guidePaths].map((path) => `${publicBaseUrl}${path === "/" ? "" : path}`)
 

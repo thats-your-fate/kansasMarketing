@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Link from "next/link"
 import { MarketingLayout } from "@/components/future/MarketingLayout"
 import { siteConfig } from "@/app/config"
 import { seoMetadata } from "@/app/seo"
@@ -32,7 +33,7 @@ export default function DataPage() {
 					<p>
 						{siteConfig.brandName} organizes public Kansas well, lease, operator, and production records from the{" "}
 						{siteConfig.officialAgencyName} (KCC) and the {siteConfig.secondaryAgencyName} (KGS) so you can move from a
-						guide to the underlying source context. See <a href="/data-coverage">data coverage</a> for how often each
+						guide to the underlying source context. See <Link href="/data-coverage">data coverage</Link> for how often each
 						source is intended to refresh.
 					</p>
 				</div>

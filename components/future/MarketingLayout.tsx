@@ -1,14 +1,13 @@
+import Link from "next/link"
 import { siteConfig } from "@/app/config"
 import { SocialLinks } from "@/components/future/SocialLinks"
 import { futureWellsCtaHref } from "@/config/userArea"
 
 // Ported from coloradoMarketing/components/future/MarketingLayout.tsx for
 // KS-18 — same header/nav/mobile-nav/footer/ProductCta/DisclaimerStrip
-// structure, Kansas content and links only. Colorado's nav (Map / Browse /
-// Data / Activity / Guides) is trimmed to the ticket's recommended set
-// (Data / Activity / Guides / Methodology) since this site never builds a
-// public map or browse-first entity directories — see
-// docs/architecture/kansas-marketing-boundary.md.
+// structure, Kansas content and links only. The public Browse page is a
+// lightweight entry-point page; entity search/map/detail workflows still
+// live inside Future Wells Co — see docs/architecture/kansas-marketing-boundary.md.
 
 export const platformDisclaimer =
 	`${siteConfig.brandName} organizes public Kansas oil and gas source information from the ${siteConfig.officialAgencyName} (KCC) and the ${siteConfig.secondaryAgencyName} (KGS). Source records may be incomplete, delayed, corrected, duplicated, transformed, or interpreted incorrectly. This platform does not provide legal, financial, investment, mineral ownership, title, engineering, drilling, tax, regulatory, or operational advice.`
@@ -23,10 +22,10 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
 		<div className="fwt-page">
 			<nav className="fwt-nav">
 				<div className="fwt-container fwt-nav-inner">
-					<a className="fwt-brand" href="/">
+					<Link className="fwt-brand" href="/">
 						<span className="fwt-mark">{siteConfig.stateCode}</span>
 						<span>{siteConfig.brandName}</span>
-					</a>
+					</Link>
 					<div className="fwt-nav-desktop">
 						<MarketingNavLinks />
 						<MarketingNavActions />
@@ -60,19 +59,20 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
 					</div>
 					<div>
 						<strong className="fwt-footer-heading">Data</strong>
-						<a href="/data">Kansas Data Sources</a>
-						<a href="/data-coverage">Data Coverage</a>
-						<a href={siteConfig.activityPath}>Activity</a>
-						<a href="/guides">Kansas Oil &amp; Gas Guides</a>
-						<a href="/methodology">Methodology</a>
+						<Link href="/browse">Browse Kansas</Link>
+						<Link href="/data">Kansas Data Sources</Link>
+						<Link href="/data-coverage">Data Coverage</Link>
+						<Link href={siteConfig.activityPath}>Activity</Link>
+						<Link href="/guides">Kansas Oil &amp; Gas Guides</Link>
+						<Link href="/methodology">Methodology</Link>
 					</div>
 					<div>
 						<strong className="fwt-footer-heading">Resources</strong>
-						<a href="/disclaimer">Disclaimer</a>
-						<a href="/privacy">Privacy</a>
-						<a href="/terms">Terms</a>
+						<Link href="/disclaimer">Disclaimer</Link>
+						<Link href="/privacy">Privacy</Link>
+						<Link href="/terms">Terms</Link>
 						<a href={futureWellsCtaHref("footer_user_area")}>User Area</a>
-						<a href="/contact">Contact</a>
+						<Link href="/contact">Contact</Link>
 					</div>
 					<div>
 						<strong className="fwt-footer-heading">Company</strong>
@@ -94,10 +94,11 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
 function MarketingNavLinks() {
 	return (
 		<div className="fwt-nav-links">
-			<a href="/data">Data</a>
-			<a href={siteConfig.activityPath}>Activity</a>
-			<a href="/guides">Guides</a>
-			<a href="/methodology">Methodology</a>
+			<Link href="/browse">Browse</Link>
+			<Link href="/data">Data</Link>
+			<Link href={siteConfig.activityPath}>Activity</Link>
+			<Link href="/guides">Guides</Link>
+			<Link href="/methodology">Methodology</Link>
 		</div>
 	)
 }

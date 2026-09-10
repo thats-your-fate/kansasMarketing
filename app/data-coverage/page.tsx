@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Link from "next/link"
 import { Fragment } from "react"
 import { MarketingLayout } from "@/components/future/MarketingLayout"
 import { siteConfig } from "@/app/config"
@@ -48,7 +49,7 @@ export default function DataCoveragePage() {
 					<p>
 						{siteConfig.brandName} monitors these {siteConfig.officialAgencyName} (KCC) and {siteConfig.secondaryAgencyName}{" "}
 						(KGS) sources at the target cadence below. These are refresh targets, not a guarantee that every source has
-						been refreshed within that window — see <a href="/methodology">methodology</a> for how coverage limits are
+						been refreshed within that window — see <Link href="/methodology">methodology</Link> for how coverage limits are
 						handled.
 					</p>
 				</div>

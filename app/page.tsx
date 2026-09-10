@@ -47,8 +47,8 @@ export default function HomePage() {
 							<a className="fwt-btn gold" href={futureWellsCtaHref("homepage_hero_primary")}>
 								Open Kansas in Future Wells Co
 							</a>
-							<Link className="fwt-btn ghost" href="/data">
-								Review Kansas data sources
+							<Link className="fwt-btn ghost" href="/browse">
+								Browse Kansas records
 							</Link>
 						</div>
 					</div>

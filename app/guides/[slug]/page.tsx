@@ -12,8 +12,11 @@ export function generateStaticParams() {
 	return allExplainers().map((explainer) => ({ slug: explainer.slug }))
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
-	const explainer = explainerContent(params.slug)
+type PageProps = { params: Promise<{ slug: string }> }
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+	const { slug } = await params
+	const explainer = explainerContent(slug)
 	if (!explainer) return {}
 	return seoMetadata({
 		title: explainer.metaTitle,
@@ -23,8 +26,9 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
 	})
 }
 
-export default function GuideDetailPage({ params }: { params: { slug: string } }) {
-	const explainer = explainerContent(params.slug)
+export default async function GuideDetailPage({ params }: PageProps) {
+	const { slug } = await params
+	const explainer = explainerContent(slug)
 	if (!explainer) notFound()
 	const relatedGuides = explainer.relatedGuideSlugs.map((slug) => explainerContent(slug)).filter((guide): guide is NonNullable<typeof guide> => Boolean(guide))
 	const breadcrumbs = [

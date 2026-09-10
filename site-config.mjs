@@ -15,12 +15,11 @@ export const siteConfig = {
 	activityPath: "/activity",
 }
 
-// This site is a regional SEO/lead-gen content site, not a data-product
-// application (task plan §10, recorded 2026-09-05) — it never builds public
-// well search, a map, or browse-first directories; that experience lives
-// only in the shared futurewells.co/user-area. Every flag below stays false
-// as an explicit off-switch, not a TODO — flipping one back on means
-// revisiting task plan §10 first, not just building the page.
+// This site is a regional SEO/lead-gen content site, not a full data-product
+// application. It may expose lightweight Browse and entity landing-card
+// pages, but public search, maps, saved workflows, and paginated product
+// directories live in the shared futurewells.co/user-area. Every flag below
+// stays false as an explicit off-switch for those deeper workflows.
 export const features = {
 	documents: false,
 	events: false,

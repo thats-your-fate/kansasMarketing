@@ -11,19 +11,23 @@
     "build": "next build",
     "start": "next start -p 3009",
     "typecheck": "tsc --noEmit",
-    "lint": "next lint"
+    "lint": "eslint ."
   },
   "dependencies": {
-    "next": "^14.2.1",
+    "next": "^15.5.25",
     "react": "^18",
     "react-dom": "^18"
   },
   "devDependencies": {
+    "@next/eslint-plugin-next": "^16.3.4",
     "@types/node": "^22",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "eslint": "^8.57.1",
-    "eslint-config-next": "^14.2.35",
-    "typescript": "^5"
+    "eslint": "^10.10.0",
+    "typescript": "^5",
+    "typescript-eslint": "^8.70.0"
+  },
+  "overrides": {
+    "postcss": "8.5.28"
   }
 }

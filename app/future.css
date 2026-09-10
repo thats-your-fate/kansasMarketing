@@ -667,6 +667,73 @@ body {
 	height: auto;
 }
 
+.fwt-entry-section {
+	background: #f8fafc;
+}
+
+.fwt-entry-grid {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 18px;
+}
+
+.fwt-entry-block {
+	background: #fff;
+	border: 1px solid var(--fwt-line);
+	padding: 28px;
+	min-height: 100%;
+}
+
+.fwt-entry-grid > .fwt-entry-block {
+	box-sizing: border-box;
+	flex: 0 0 calc((100% - 18px) / 2);
+	max-width: calc((100% - 18px) / 2);
+}
+
+.fwt-entry-block h3 {
+	color: var(--fwt-ink);
+	font-size: 24px;
+	line-height: 1.18;
+	margin: 8px 0 22px;
+}
+
+.fwt-entry-link-list {
+	display: grid;
+	gap: 10px;
+}
+
+.fwt-entry-link-list a {
+	position: relative;
+	z-index: 1;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) max-content;
+	gap: 12px;
+	align-items: center;
+	background: #f8fafc;
+	border: 1px solid rgba(8, 17, 31, 0.1);
+	color: var(--fwt-ink);
+	padding: 13px 14px;
+	text-decoration: none;
+	cursor: pointer;
+	touch-action: manipulation;
+}
+
+.fwt-entry-link-list span {
+	font-weight: 800;
+	overflow-wrap: anywhere;
+}
+
+.fwt-entry-link-list strong {
+	color: var(--fwt-muted);
+	font-family: Georgia, serif;
+	font-style: italic;
+	font-weight: 700;
+	justify-self: end;
+	text-align: right;
+	white-space: nowrap;
+	overflow-wrap: anywhere;
+}
+
 /* ---------------------------------------------------------------------
  * Cards
  * --------------------------------------------------------------------- */
@@ -813,6 +880,92 @@ body {
 .fwt-link-list a span {
 	color: var(--fwt-muted);
 	font-weight: 500;
+}
+
+.fwt-map-status {
+	margin: 0;
+	border: 1px solid rgba(8, 17, 31, 0.1);
+	background: #f8fafc;
+	padding: 12px;
+	color: var(--fwt-muted);
+	line-height: 1.5;
+}
+
+.fwt-county-well-list {
+	display: grid;
+	gap: 12px;
+}
+
+.fwt-county-well-list article {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 12px;
+	align-items: start;
+	border: 1px solid rgba(8, 17, 31, 0.1);
+	background: #f8fafc;
+	padding: 16px;
+}
+
+.fwt-county-well-list strong {
+	display: block;
+	margin-top: 4px;
+	overflow-wrap: anywhere;
+}
+
+.fwt-county-well-list p {
+	margin: 8px 0 0;
+	color: var(--fwt-muted);
+	overflow-wrap: anywhere;
+}
+
+.fwt-gold-link,
+.fwt-county-well-list article > a {
+	position: relative;
+	z-index: 1;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	justify-self: end;
+	min-height: 42px;
+	padding: 0 18px;
+	border: 1px solid var(--fwt-gold);
+	background: var(--fwt-gold);
+	color: #111827;
+	font-weight: 800;
+	text-decoration: none;
+	white-space: nowrap;
+	cursor: pointer;
+	touch-action: manipulation;
+}
+
+.fwt-gold-link:hover,
+.fwt-gold-link:focus,
+.fwt-county-well-list article > a:hover,
+.fwt-county-well-list article > a:focus {
+	border-color: var(--fwt-gold);
+	background: var(--fwt-gold);
+	color: #111827;
+	text-decoration: none;
+}
+
+.fwt-county-card-meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 12px;
+	text-transform: none;
+	letter-spacing: 0;
+}
+
+.fwt-county-card-meta span,
+.fwt-county-card-meta time {
+	max-width: 100%;
+	padding: 5px 8px;
+	border: 1px solid rgba(8, 17, 31, 0.1);
+	background: #fff;
+	color: var(--fwt-muted);
+	font-size: 12px;
+	overflow-wrap: anywhere;
 }
 
 .fwt-faq-section {
@@ -993,6 +1146,338 @@ body {
 	text-decoration: none;
 }
 
+.fwt-well-hero {
+	background:
+		linear-gradient(90deg, rgba(8, 17, 31, 0.96), rgba(8, 17, 31, 0.86)),
+		linear-gradient(135deg, #182435 0%, #0b1320 44%, #1e342f 100%);
+	color: #fff;
+	padding: 72px 0 46px;
+}
+
+.fwt-well-hero-grid {
+	display: grid;
+	grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
+	gap: 34px;
+	align-items: end;
+}
+
+.fwt-well-hero h1 {
+	color: #fff;
+	font-size: clamp(38px, 5vw, 62px);
+	line-height: 1.02;
+	letter-spacing: 0;
+	margin: 14px 0;
+	max-width: 860px;
+}
+
+.fwt-well-hero p {
+	color: rgba(255, 255, 255, 0.78);
+	font-size: 17px;
+	line-height: 1.6;
+	margin: 0;
+	max-width: 760px;
+}
+
+.fwt-well-badges {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 22px;
+}
+
+.fwt-well-badges span {
+	background: rgba(241, 208, 138, 0.11);
+	border: 1px solid rgba(241, 208, 138, 0.35);
+	color: #f6dfa9;
+	font-size: 12px;
+	font-weight: 800;
+	letter-spacing: 0.06em;
+	padding: 8px 10px;
+	text-transform: uppercase;
+}
+
+.fwt-well-summary {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 10px;
+}
+
+.fwt-well-summary > div {
+	background: rgba(255, 255, 255, 0.08);
+	border: 1px solid rgba(255, 255, 255, 0.14);
+	min-width: 0;
+	padding: 16px;
+}
+
+.fwt-well-summary span {
+	color: rgba(255, 255, 255, 0.58);
+	display: block;
+	font-size: 12px;
+	font-weight: 800;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.fwt-well-summary strong {
+	color: #fff;
+	display: block;
+	margin-top: 7px;
+	overflow-wrap: anywhere;
+}
+
+.fwt-well-layout {
+	align-items: start;
+	display: grid;
+	gap: 22px;
+	grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+}
+
+.fwt-well-main,
+.fwt-well-aside {
+	display: grid;
+	gap: 18px;
+}
+
+.fwt-well-aside {
+	position: sticky;
+	top: 92px;
+}
+
+.fwt-well-panel {
+	min-height: auto;
+}
+
+.fwt-detail-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 12px;
+	margin-top: 18px;
+}
+
+.fwt-detail-grid.single {
+	grid-template-columns: 1fr;
+}
+
+.fwt-detail-grid > div {
+	background: #fbfaf7;
+	border: 1px solid var(--fwt-line);
+	min-width: 0;
+	padding: 16px;
+}
+
+.fwt-detail-grid span {
+	color: var(--fwt-muted);
+	display: block;
+	font-size: 12px;
+	font-weight: 800;
+	letter-spacing: 0.08em;
+	margin-bottom: 8px;
+	text-transform: uppercase;
+}
+
+.fwt-detail-grid strong {
+	color: var(--fwt-ink);
+	display: block;
+	overflow-wrap: anywhere;
+}
+
+.fwt-well-map-panel {
+	display: grid;
+	gap: 14px;
+}
+
+.fwt-well-map-head {
+	align-items: start;
+	display: grid;
+	gap: 16px;
+	grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.fwt-status-badge {
+	background: #07101d;
+	color: #fff;
+	display: inline-flex;
+	font-size: 12px;
+	font-weight: 800;
+	line-height: 1;
+	padding: 12px 14px;
+	white-space: nowrap;
+}
+
+.fwt-status-badge.success {
+	background: #d8f5ed;
+	border: 1px solid #83cfc0;
+	color: #0f766e;
+}
+
+.fwt-detail-map-shell,
+.fwt-detail-map-empty {
+	border: 1px solid rgba(8, 17, 31, 0.12);
+	min-height: 380px;
+	overflow: hidden;
+	position: relative;
+}
+
+.fwt-detail-map-shell {
+	background:
+		linear-gradient(90deg, rgba(8, 17, 31, 0.06) 1px, transparent 1px),
+		linear-gradient(0deg, rgba(8, 17, 31, 0.05) 1px, transparent 1px),
+		#eef2ee;
+	background-size: 64px 64px;
+}
+
+.fwt-detail-map-empty {
+	align-items: center;
+	background: #f8fafc;
+	display: grid;
+	justify-items: center;
+	padding: 24px;
+	text-align: center;
+}
+
+.fwt-map-road {
+	background: #d29a2f;
+	border: 2px solid rgba(255, 255, 255, 0.74);
+	height: 8px;
+	position: absolute;
+	transform-origin: left center;
+}
+
+.fwt-map-road.one {
+	left: 5%;
+	top: 76%;
+	transform: rotate(-24deg);
+	width: 66%;
+}
+
+.fwt-map-road.two {
+	left: 38%;
+	top: 12%;
+	transform: rotate(43deg);
+	width: 52%;
+}
+
+.fwt-map-road.three {
+	left: 48%;
+	top: 58%;
+	transform: rotate(-33deg);
+	width: 33%;
+}
+
+.fwt-map-section-line {
+	background: rgba(8, 17, 31, 0.12);
+	position: absolute;
+}
+
+.fwt-map-section-line.vertical {
+	height: 100%;
+	left: 58%;
+	top: 0;
+	width: 1px;
+}
+
+.fwt-map-section-line.horizontal {
+	height: 1px;
+	left: 0;
+	top: 48%;
+	width: 100%;
+}
+
+.fwt-map-well-dot {
+	background: #0f766e;
+	border: 5px solid #fff;
+	border-radius: 999px;
+	box-shadow: 0 6px 20px rgba(8, 17, 31, 0.3);
+	height: 22px;
+	left: 46%;
+	position: absolute;
+	top: 59%;
+	width: 22px;
+}
+
+.fwt-map-label {
+	background: rgba(255, 255, 255, 0.88);
+	border: 1px solid rgba(8, 17, 31, 0.1);
+	color: var(--fwt-ink);
+	font-size: 12px;
+	font-weight: 800;
+	padding: 6px 8px;
+	position: absolute;
+}
+
+.fwt-map-label.county {
+	left: 22px;
+	top: 20px;
+}
+
+.fwt-map-label.coords {
+	bottom: 18px;
+	right: 18px;
+}
+
+.fwt-map-label.trajectory {
+	bottom: 18px;
+	left: 18px;
+}
+
+.fwt-source-timeline,
+.fwt-lifecycle-stack {
+	display: grid;
+	gap: 12px;
+	margin-top: 18px;
+}
+
+.fwt-source-timeline article,
+.fwt-lifecycle-stack article {
+	border: 1px solid var(--fwt-line);
+	background: #fff;
+	padding: 18px;
+}
+
+.fwt-source-timeline article {
+	border-left: 4px solid #0f766e;
+}
+
+.fwt-source-timeline article > span {
+	color: var(--fwt-muted);
+	display: block;
+	font-size: 13px;
+	font-weight: 800;
+	margin-bottom: 6px;
+}
+
+.fwt-source-timeline h3,
+.fwt-lifecycle-stack h3 {
+	font-size: 19px;
+	line-height: 1.18;
+	margin: 0 0 8px;
+}
+
+.fwt-status-code-note {
+	color: var(--fwt-muted);
+	font-size: 13px;
+	line-height: 1.5;
+	margin: 0 0 14px;
+}
+
+.fwt-lifecycle-stack a,
+.fwt-map-point a {
+	color: var(--fwt-navy);
+	font-weight: 800;
+	text-decoration: underline;
+}
+
+.fwt-map-point {
+	display: grid;
+	gap: 14px;
+}
+
+.fwt-map-point p {
+	color: var(--fwt-ink);
+	font-weight: 800;
+	margin: 0;
+}
+
 /* ---------------------------------------------------------------------
  * Contact page
  * --------------------------------------------------------------------- */
@@ -1138,36 +1623,53 @@ body {
 /* ---------------------------------------------------------------------
  * RecordConversionCta (KS-M001 addendum) — folded in here so it shares
  * the same tokens instead of the ad hoc overrides that used to live in
- * globals.css. Not currently mounted on any page (no entity pages exist
- * yet), kept working for whenever one is built.
+ * globals.css. Used by lightweight well/operator/county/field landing cards
+ * to hand deeper research into the shared Future Wells Co workspace.
  * --------------------------------------------------------------------- */
 
 .fwt-record-inline-cta {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 24px;
-	justify-content: space-between;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: 22px;
 	align-items: center;
-	border: 1px solid var(--fwt-line);
-	background: #fff;
-	padding: 28px;
-	margin: 24px 0;
+	background: #07101d;
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	color: rgba(255, 255, 255, 0.78);
+	padding: 32px;
+}
+
+.fwt-record-inline-cta h2 {
+	color: #fff;
+	font-size: clamp(28px, 3vw, 40px);
+	line-height: 1.08;
+	margin: 8px 0 10px;
+}
+
+.fwt-record-inline-cta p {
+	color: rgba(255, 255, 255, 0.68);
+	margin: 0;
 }
 
 .fwt-record-inline-benefits {
 	list-style: none;
 	padding: 0;
-	margin: 12px 0 0;
-	display: flex;
-	flex-wrap: wrap;
-	gap: 6px 16px;
-	font-size: 13px;
-	color: var(--fwt-muted);
+	margin: 18px 0 0;
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 10px 22px;
+	font-size: 14px;
+	font-weight: 800;
+	color: rgba(255, 255, 255, 0.82);
 }
 
 .fwt-record-inline-benefits li::before {
-	content: "\2713 ";
+	content: "";
+	display: inline-block;
+	height: 7px;
+	margin-right: 9px;
+	width: 7px;
 	color: var(--fwt-gold);
+	background: var(--fwt-gold);
 }
 
 .fwt-record-inline-actions {
@@ -1178,8 +1680,9 @@ body {
 }
 
 .fwt-record-inline-secondary {
-	font-size: 13px;
-	color: var(--fwt-ink);
+	color: #fff;
+	font-weight: 800;
+	text-decoration: none;
 }
 
 /* ---------------------------------------------------------------------
@@ -1203,11 +1706,15 @@ body {
 	}
 
 	.fwt-hero-grid,
-	.fwt-county-hero-grid,
-	.fwt-county-layout,
-	.fwt-grid,
-	.fwt-grid.two,
-	.fwt-contact-layout,
+		.fwt-entry-grid,
+		.fwt-county-hero-grid,
+		.fwt-county-layout,
+		.fwt-well-hero-grid,
+		.fwt-well-layout,
+		.fwt-record-inline-cta,
+		.fwt-grid,
+		.fwt-grid.two,
+		.fwt-contact-layout,
 	.fwt-footer-grid {
 		grid-template-columns: 1fr;
 		display: grid;
@@ -1221,11 +1728,29 @@ body {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 
+	.fwt-county-well-list article {
+		grid-template-columns: 1fr;
+	}
+
 	.fwt-county-aside {
 		position: static;
 		max-height: none;
 		overflow: visible;
 		padding-right: 0;
+	}
+
+	.fwt-well-aside {
+		position: static;
+	}
+
+	.fwt-detail-grid,
+	.fwt-well-map-head,
+	.fwt-record-inline-benefits {
+		grid-template-columns: 1fr;
+	}
+
+	.fwt-well-summary {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 
 	.fwt-product-cta-inner {
@@ -1235,5 +1760,20 @@ body {
 
 	.fwt-section-header {
 		display: grid;
+	}
+
+	.fwt-entry-grid > .fwt-entry-block {
+		flex-basis: 100%;
+		max-width: 100%;
+	}
+
+	.fwt-entry-link-list a {
+		grid-template-columns: 1fr;
+	}
+
+	.fwt-entry-link-list strong {
+		justify-self: start;
+		text-align: left;
+		white-space: normal;
 	}
 }

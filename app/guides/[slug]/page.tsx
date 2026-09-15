@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 import { BreadcrumbTrail } from "@/components/future/BreadcrumbTrail"
 import { MarketingLayout } from "@/components/future/MarketingLayout"
 import { futureWellsCtaHref } from "@/config/userArea"
+import { guideQuestion } from "@/app/editorial-audit.mjs"
 import { allExplainers, explainerContent } from "@/app/lib/explainers"
 import { seoMetadata } from "@/app/seo"
 import { ArticleJsonLd, BreadcrumbJsonLd, FaqPageJsonLd } from "@/app/structured-data"
@@ -81,6 +82,8 @@ export default async function GuideDetailPage({ params }: PageProps) {
 						<section className="fwt-copy fwt-county-panel">
 							<span className="fwt-eyebrow">At a glance</span>
 							<h2>{explainer.shortTitle}</h2>
+							<p><strong>Question answered:</strong> {guideQuestion(explainer.slug)}</p>
+							<p><strong>Short answer:</strong> {explainer.summary}</p>
 							<dl className="nm-meta-list">
 								<dt>Record type</dt>
 								<dd>{explainer.formCode}</dd>
@@ -169,6 +172,17 @@ export default async function GuideDetailPage({ params }: PageProps) {
 								{explainer.relatedFutureWellsRecords.map((item) => (
 									<li key={item}>{item}</li>
 								))}
+							</ul>
+						</section>
+
+						<section className="fwt-copy fwt-county-panel">
+							<h2>Public record entry points</h2>
+							<p>Use these public, non-map pages to move from the guide into implemented Kansas record pages. Interactive search and saved workflows remain inside Future Wells Co.</p>
+							<ul>
+								<li><Link href="/browse">Browse Kansas record entry points</Link></li>
+								<li><Link href="/counties">County directory</Link></li>
+								<li><Link href="/operators">Operator directory</Link></li>
+								<li><Link href="/fields">Field directory</Link></li>
 							</ul>
 						</section>
 

@@ -5,8 +5,8 @@ import { seoMetadata } from "@/app/seo"
 import { BreadcrumbJsonLd } from "@/app/structured-data"
 
 export const metadata: Metadata = seoMetadata({
-	title: `Terms of Use | ${siteConfig.brandName}`,
-	description: `Read the ${siteConfig.brandName} terms for product access, public data limitations, user responsibility, uptime, accuracy, and professional advice disclaimers.`,
+	title: "Terms of Use for Future Wells Kansas",
+	description: "Read Future Wells Kansas terms covering product access, public data limitations, user responsibility, uptime, accuracy, and professional advice disclaimers.",
 	path: "/terms",
 })
 

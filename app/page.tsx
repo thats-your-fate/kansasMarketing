@@ -8,8 +8,8 @@ import { seoMetadata } from "@/app/seo"
 import { OrganizationJsonLd, WebSiteJsonLd } from "@/app/structured-data"
 
 export const metadata: Metadata = seoMetadata({
-	title: "Kansas Oil & Gas Activity, Drilling Intents & Public KCC/KGS Data | Future Wells Kansas",
-	description: `${siteConfig.brandName} organizes public Kansas oil and gas source information from the ${siteConfig.officialAgencyName} and the ${siteConfig.secondaryAgencyName} into guides and coverage notes. Interactive search, maps, and saved areas live inside Future Wells Co.`,
+	title: "Kansas Oil & Gas Records & Guides | Future Wells",
+	description: `Kansas oil and gas record guides, source notes, and activity context for public KCC and KGS data. Interactive search, maps, and saved areas live inside Future Wells Co.`,
 	path: "/",
 })
 

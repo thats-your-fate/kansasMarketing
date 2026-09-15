@@ -6,8 +6,8 @@ import { seoMetadata } from "@/app/seo"
 import { BreadcrumbJsonLd } from "@/app/structured-data"
 
 export const metadata: Metadata = seoMetadata({
-	title: "Kansas Oil and Gas Source and Document Guides | Future Wells Kansas",
-	description: "Plain-English explanations of Kansas KCC and KGS forms, identifiers, well statuses, lease production, and PLSS locations.",
+	title: "Kansas Oil & Gas Source Guides | Future Wells",
+	description: "Plain-English Kansas guides for KCC and KGS forms, API numbers, KGS KIDs, well statuses, lease production, and PLSS locations.",
 	path: "/guides",
 })
 

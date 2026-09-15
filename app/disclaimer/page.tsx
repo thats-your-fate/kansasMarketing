@@ -5,8 +5,8 @@ import { seoMetadata } from "@/app/seo"
 import { BreadcrumbJsonLd } from "@/app/structured-data"
 
 export const metadata: Metadata = seoMetadata({
-	title: `Legal and Data Disclaimer | ${siteConfig.brandName}`,
-	description: `Read ${siteConfig.brandName} legal, public data, affiliation, verification, and professional advice disclaimers.`,
+	title: "Kansas Public Data Disclaimer | Future Wells",
+	description: "Read the Future Wells Kansas disclaimer for public data limitations, official-source verification, agency affiliation, and professional advice boundaries.",
 	path: "/disclaimer",
 })
 

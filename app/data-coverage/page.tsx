@@ -7,8 +7,8 @@ import { seoMetadata } from "@/app/seo"
 import { BreadcrumbJsonLd } from "@/app/structured-data"
 
 export const metadata: Metadata = seoMetadata({
-	title: `Kansas Data Coverage | ${siteConfig.brandName}`,
-	description: "Which Kansas KCC and KGS sources Future Wells Kansas monitors, and how often each is intended to refresh.",
+	title: "Kansas Data Coverage & Refresh Notes | Future Wells",
+	description: "See which Kansas KCC and KGS record sources Future Wells Kansas monitors and the intended refresh cadence for each public data layer.",
 	path: "/data-coverage",
 })
 

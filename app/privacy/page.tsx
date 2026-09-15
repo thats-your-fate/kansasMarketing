@@ -5,8 +5,8 @@ import { seoMetadata } from "@/app/seo"
 import { BreadcrumbJsonLd } from "@/app/structured-data"
 
 export const metadata: Metadata = seoMetadata({
-	title: `Privacy Policy | ${siteConfig.brandName}`,
-	description: `Read the ${siteConfig.brandName} privacy policy for account data, server logs, cookies, sessions, analytics, and contact information.`,
+	title: "Privacy Policy for Future Wells Kansas",
+	description: "Read how Future Wells Kansas handles account data, server logs, cookies, sessions, analytics, and contact information.",
 	path: "/privacy",
 })
 

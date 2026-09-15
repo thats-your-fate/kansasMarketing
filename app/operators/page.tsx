@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 import { EntityIndexPage } from "@/app/kansas-entity-pages"
-import { siteConfig } from "@/app/config"
 import { seoMetadata } from "@/app/seo"
 
 export const dynamic = "force-dynamic"
@@ -9,8 +8,8 @@ export const fetchCache = "force-no-store"
 export const runtime = "nodejs"
 
 export const metadata: Metadata = seoMetadata({
-	title: `Kansas Oil & Gas Operators | ${siteConfig.brandName}`,
-	description: "Browse Kansas oil and gas operator cards with public well counts and representative KGS-backed context.",
+	title: "Kansas Operator Well Pages | Future Wells",
+	description: "Browse Kansas operator landing cards with public KGS well counts and representative operator-level oil and gas context.",
 	path: "/operators",
 })
 

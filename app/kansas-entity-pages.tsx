@@ -5,8 +5,9 @@ import { notFound, permanentRedirect } from "next/navigation"
 import { BreadcrumbTrail } from "@/components/future/BreadcrumbTrail"
 import { MarketingLayout } from "@/components/future/MarketingLayout"
 import { RecordConversionCta } from "@/components/future/RecordConversionCta"
-import { apiBaseUrl, siteConfig } from "@/app/config"
+import { apiBaseUrl } from "@/app/config"
 import { seoMetadata } from "@/app/seo"
+import { countyMetadata, fieldMetadata, operatorMetadata, unavailableMetadata, wellMetadata } from "@/app/metadata-copy.mjs"
 import { normalizeRecordIdentifier, normalizeSlug, recordPath } from "@/app/url-policy.mjs"
 
 type EntityKind = "counties" | "operators" | "fields"
@@ -128,17 +129,19 @@ export async function generateEntityMetadata(kind: EntityKind, slug: string): Pr
 	const config = configs[kind]
 	const result = await loadEntity(kind, slug)
 	if (!result) {
+		const metadata = unavailableMetadata(config.singular)
 		return seoMetadata({
-			title: `Kansas ${config.singular} Unavailable | ${siteConfig.brandName}`,
-			description: `No Kansas ${config.singular.toLowerCase()} page is available for this public-record path right now.`,
+			title: metadata.title,
+			description: metadata.description,
 			path: `${config.path}/${encodeURIComponent(slug)}`,
 			noIndex: true,
 		})
 	}
 	const name = entityTitle(kind, result.display_name)
+	const metadata = entityMetadata(kind, name, result)
 	return seoMetadata({
-		title: `${name} Oil & Gas Wells | ${siteConfig.brandName}`,
-		description: `${name} Kansas oil and gas well records, including producing, permitted, located, operator, field, and representative well context from public KGS data.`,
+		title: metadata.title,
+		description: metadata.description,
 		path: entityPath(kind, result.display_name),
 	})
 }
@@ -284,18 +287,18 @@ export async function EntityDetailPage({ kind, slug }: { kind: EntityKind; slug:
 export async function generateWellMetadata(api: string): Promise<Metadata> {
 	const result = await loadWell(api)
 	if (!result) {
+		const metadata = unavailableMetadata("Well")
 		return seoMetadata({
-			title: `Kansas Well Unavailable | ${siteConfig.brandName}`,
-			description: "No Kansas well page is available for this public-record path right now.",
+			title: metadata.title,
+			description: metadata.description,
 			path: `/wells/${encodeURIComponent(api)}`,
 			noIndex: true,
 		})
 	}
-	const title = wellTitle(result.well)
-	const apiLabel = wellApiLabel(result.well)
+	const metadata = wellMetadata(result.well)
 	return seoMetadata({
-		title: `${title} | Kansas Well Record | ${siteConfig.brandName}`,
-		description: `Kansas public well record${apiLabel ? ` for ${apiLabel}` : ""}, including lifecycle status, operator, county, field, dates, depth, location, and source context where available.`,
+		title: metadata.title,
+		description: metadata.description,
 		path: wellPath(result.well),
 	})
 }
@@ -996,6 +999,13 @@ function entityTitle(kind: EntityKind, value: string) {
 	if (kind === "counties") return countyLabel(value)
 	if (kind === "fields") return fieldLabel(value)
 	return value
+}
+
+function entityMetadata(kind: EntityKind, name: string, detail: Pick<KansasEntityDetail, "well_count" | "producing_count">) {
+	const stats = { wellCount: detail.well_count, producingCount: detail.producing_count }
+	if (kind === "counties") return countyMetadata(name, stats)
+	if (kind === "fields") return fieldMetadata(name, stats)
+	return operatorMetadata(name, stats)
 }
 
 export function entityPath(kind: EntityKind, value: string) {

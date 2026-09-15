@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { BreadcrumbTrail } from "@/components/future/BreadcrumbTrail"
 import { MarketingLayout } from "@/components/future/MarketingLayout"
-import { apiBaseUrl, siteConfig } from "@/app/config"
+import { apiBaseUrl } from "@/app/config"
 import { seoMetadata } from "@/app/seo"
 import { BreadcrumbJsonLd } from "@/app/structured-data"
 import { entityPath, wellPath, wellTitle } from "@/app/kansas-entity-pages"
@@ -13,8 +13,8 @@ export const fetchCache = "force-no-store"
 export const runtime = "nodejs"
 
 export const metadata: Metadata = seoMetadata({
-	title: `Browse Kansas Oil & Gas Records | ${siteConfig.brandName}`,
-	description: "Browse Kansas oil and gas record entry points: recent activity, top counties, reported operators, fields, source guides, and Future Wells Co workspace links.",
+	title: "Browse Kansas Well Record Entry Points | Future Wells",
+	description: "Start from recent Kansas well activity, top counties, reported operators, fields, and source guides before opening deeper Future Wells Co workflows.",
 	path: "/browse",
 })
 

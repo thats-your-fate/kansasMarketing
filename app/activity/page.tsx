@@ -6,8 +6,8 @@ import { seoMetadata } from "@/app/seo"
 import { BreadcrumbJsonLd } from "@/app/structured-data"
 
 export const metadata: Metadata = seoMetadata({
-	title: `Kansas Oil & Gas Activity | ${siteConfig.brandName}`,
-	description: "The Kansas well, lease, operator, and production activity signals Future Wells Kansas tracks, and where to watch them live.",
+	title: "Kansas Oil & Gas Activity Signals | Future Wells",
+	description: "Understand Kansas drilling intents, completions, plugging, transfers, production updates, and other activity signals from public KCC and KGS records.",
 	path: siteConfig.activityPath,
 })
 

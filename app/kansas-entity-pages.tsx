@@ -7,6 +7,7 @@ import { MarketingLayout } from "@/components/future/MarketingLayout"
 import { RecordConversionCta } from "@/components/future/RecordConversionCta"
 import { apiBaseUrl } from "@/app/config"
 import { entityDirectoryPath, parseDirectoryPage } from "@/app/directory-policy.mjs"
+import { hasReportedNumber, productionEvidenceForWell, publicWellRelationshipFacts, sourceDateFacts } from "@/app/entity-facts.mjs"
 import { seoMetadata } from "@/app/seo"
 import { countyMetadata, fieldMetadata, operatorMetadata, unavailableMetadata, wellMetadata } from "@/app/metadata-copy.mjs"
 import { normalizeRecordIdentifier, normalizeSlug, recordPath } from "@/app/url-policy.mjs"
@@ -230,12 +231,13 @@ export async function EntityDetailPage({ kind, slug }: { kind: EntityKind; slug:
 					<main className="fwt-county-main">
 						<Panel eyebrow="Full-scope metrics" title={`${configs[kind].singular} key metrics`}>
 							<DetailGrid rows={[
+								["User question answered", entityQuestion(kind)],
 								["Total entity records", `${detail.well_count.toLocaleString()} wells`],
 								["Displayed-card sample", `${displayedWellCount.toLocaleString()} records`],
 								["Producing records", `${detail.producing_count.toLocaleString()} records`],
 								["Permit-status records", `${detail.permit_count.toLocaleString()} records`],
 								["Located records", `${detail.located_well_count.toLocaleString()} records`],
-								["Data as of", dateLabel(detail.data_as_of)],
+								["Latest local snapshot check", dateLabel(detail.data_as_of)],
 							]} />
 							<div className="fwt-county-card-meta">
 								<span>{displayedWellCount.toLocaleString()} records represented in displayed sample</span>
@@ -284,6 +286,8 @@ export async function EntityDetailPage({ kind, slug }: { kind: EntityKind; slug:
 							<DetailGrid rows={[
 								["Entity slug", detail.key],
 								["Dataset", "ks_well"],
+								["Source event dates", "Aggregated well permit, spud, completion, and plug dates where present"],
+								["Production reporting level", "Lease-level in Kansas; no well-level production allocation is implied"],
 								["Location coverage", percentLabel(detail.located_well_count, detail.well_count)],
 								["Current snapshot", "Yes"],
 							]} />
@@ -304,13 +308,18 @@ export async function EntityDetailPage({ kind, slug }: { kind: EntityKind; slug:
 								Future Wells Kansas is an independent research site. These pages summarize Kansas public well inventory records where available.
 							</p>
 							<p>Verify operational, ownership, production, and compliance decisions with official KCC and KGS records before relying on them.</p>
+							<div className="fwt-activity-date-links">
+								<a href="https://www.kgs.ku.edu/PRS/petroDB.html" rel="nofollow noopener noreferrer">KGS oil and gas database</a>
+								<a href="https://www.kcc.ks.gov/oil-gas/data-search" rel="nofollow noopener noreferrer">KCC oil and gas data search</a>
+							</div>
 						</Panel>
 						<Panel eyebrow="Source attribution" title="Snapshot facts">
 							<DetailGrid single rows={[
 								["Dataset", "ks_well"],
 								["Page type", configs[kind].recordKind],
 								["Canonical slug", detail.key],
-								["Data as of", dateLabel(detail.data_as_of)],
+								["Latest local snapshot check", dateLabel(detail.data_as_of)],
+								["Source publication/update date", "Not returned in this public entity payload"],
 								["Current snapshot", "Yes"],
 							]} />
 						</Panel>
@@ -381,6 +390,13 @@ export async function WellDetailPage({ api, slug }: { api: string; slug?: string
 			<section className="fwt-section">
 				<div className="fwt-container fwt-well-layout">
 					<main className="fwt-well-main">
+						<Panel eyebrow="Record question" title="What this well page answers" variant="well">
+							<DetailGrid rows={[
+								["User question answered", "What public KGS well-inventory facts and relationships are available for this Kansas well?"],
+								["Record scope", "One well inventory record plus related public source fields returned by the Kansas backend"],
+								["Production scope", "Lease-level production context only; no well-level monthly volume allocation is shown"],
+							]} />
+						</Panel>
 						<Panel eyebrow="Public-record evidence" title="Well status and linked data" variant="well">
 							<p>Inventory status: <em>{well.lifecycle_status ? statusLabel(well.lifecycle_status) : "Not reported"}.</em></p>
 							<p>Production evidence: <em>{productionEvidence(well)}</em></p>
@@ -391,7 +407,7 @@ export async function WellDetailPage({ api, slug }: { api: string; slug?: string
 								["Location summary", locationSummary(well)],
 								["Formation/depth", formationDepthSummary(well)],
 								["Horizontal/directional", horizontalSummary(well)],
-								["Data as of", dateLabel(well.last_seen_at)],
+								["Latest local snapshot check", dateLabel(well.last_seen_at)],
 							]} />
 						</Panel>
 						<RecordConversionCta
@@ -435,6 +451,7 @@ export async function WellDetailPage({ api, slug }: { api: string; slug?: string
 								["Initial test date", dateLabel(well.completion_date)],
 							]} />
 						</Panel>
+						<WellProvenancePanel well={well} />
 						<Panel eyebrow="Well context" title="Kansas source record details" variant="well">
 							<DetailGrid rows={[
 								["Well name", title],
@@ -463,7 +480,7 @@ export async function WellDetailPage({ api, slug }: { api: string; slug?: string
 								["Initial oil", rateLabel(well.ip_oil, "bbl")],
 								["Initial gas", rateLabel(well.ip_gas, "mcf")],
 								["Initial water", rateLabel(well.ip_water, "bbl")],
-								["Reporting basis", "Source completion snapshot"],
+								["Reporting basis", "Source completion-test snapshot; zero means the source reported zero"],
 							]} />
 						</Panel>
 						<Panel eyebrow="Nearby context" title="Related county wells" variant="well">
@@ -507,6 +524,11 @@ export async function WellDetailPage({ api, slug }: { api: string; slug?: string
 							<p>
 								Well pages combine Kansas public well inventory records and completion-style source fields where available. Verify operator, status, location, and lifecycle facts against official records before relying on them.
 							</p>
+							<div className="fwt-activity-date-links">
+								<a href="https://www.kgs.ku.edu/PRS/petroDB.html" rel="nofollow noopener noreferrer">KGS oil and gas database</a>
+								<a href="https://www.kgs.ku.edu/PRS/file_format.html" rel="nofollow noopener noreferrer">KGS well file format</a>
+								<a href="https://www.kcc.ks.gov/oil-gas/data-search" rel="nofollow noopener noreferrer">KCC oil and gas data search</a>
+							</div>
 						</Panel>
 						<Panel eyebrow="Source" title="Source attribution" variant="well">
 							<DetailGrid single rows={[
@@ -786,10 +808,35 @@ function ProductionContextPanel({ well }: { well: KansasWellCard }) {
 			<DetailGrid rows={[
 				["Displayed basis", "Well inventory snapshot"],
 				["Well-level monthly volumes", "Not reported on this page"],
+				["Lease-level reporting period", "Not returned in this public well payload"],
 				["Initial oil test", rateLabel(well.ip_oil, "bbl")],
 				["Initial gas test", rateLabel(well.ip_gas, "mcf")],
 				["Producing formation", well.producing_formation],
 				["Completion date", dateLabel(well.completion_date)],
+			]} />
+		</Panel>
+	)
+}
+
+function WellProvenancePanel({ well }: { well: KansasWellCard }) {
+	const dates = sourceDateFacts(well)
+	const relationships = publicWellRelationshipFacts(well)
+	return (
+		<Panel eyebrow="Fact provenance" title="Source fields behind this summary" variant="well">
+			<p>These rows separate source event dates from local observation timestamps. Missing source dates are left missing; they are not treated as zero or as today's date.</p>
+			<DetailGrid rows={[
+				["Source event date: permit", dateLabel(dates.sourceEventDates.permitDate)],
+				["Source event date: spud", dateLabel(dates.sourceEventDates.spudDate)],
+				["Source event date: completion", dateLabel(dates.sourceEventDates.completionDate)],
+				["Source event date: plugging", dateLabel(dates.sourceEventDates.plugDate)],
+				["Production reporting period", dates.reportingPeriod || "Not returned in this public well payload"],
+				["Source publication/update date", dates.sourcePublishedOrUpdatedAt || "Not returned in this public well payload"],
+				["Local first seen", dateLabel(dates.localFirstSeenAt)],
+				["Local last checked", dateLabel(dates.localLastSeenAt)],
+				["County relationship", relationships.county ? countyLabel(relationships.county) : null],
+				["Operator relationship", meaningfulOperator(relationships.operator)],
+				["Field relationship", meaningfulField(relationships.field)],
+				["Lease relationship", relationships.lease ? titleCase(relationships.lease) : null],
 			]} />
 		</Panel>
 	)
@@ -923,6 +970,12 @@ function groupNameToKind(title: string): EntityKind {
 	return "fields"
 }
 
+function entityQuestion(kind: EntityKind) {
+	if (kind === "counties") return "Which public Kansas well records are associated with this county, and what statuses and relationships appear in the current KGS-backed snapshot?"
+	if (kind === "operators") return "Which public Kansas well records report this operator name, and what counties, fields, and statuses appear with it?"
+	return "Which public Kansas well records report this field name, and what operators, counties, and statuses appear with it?"
+}
+
 function entitySummary(kind: EntityKind, detail: KansasEntityDetail) {
 	const name = entityTitle(kind, detail.display_name)
 	const parts = [
@@ -944,9 +997,7 @@ function wellSummary(well: KansasWellCard) {
 }
 
 function productionEvidence(well: KansasWellCard) {
-	if (well.lifecycle_status === "producing") return "KGS lifecycle status reports producing."
-	if (well.ip_oil || well.ip_gas || well.ip_water) return "Initial completion test values are present."
-	return "No current well-level production volume is reported on this Kansas well card."
+	return productionEvidenceForWell(well)
 }
 
 function primaryActivityLabel(well: KansasWellCard) {
@@ -1150,8 +1201,8 @@ function subdivisionLabel(well: KansasWellCard) {
 
 function footageLabel(well: KansasWellCard) {
 	const parts = [
-		well.feet_north_from_reference ? `${well.feet_north_from_reference.toLocaleString()} ft north` : null,
-		well.feet_east_from_reference ? `${well.feet_east_from_reference.toLocaleString()} ft east` : null,
+		well.feet_north_from_reference != null ? `${well.feet_north_from_reference.toLocaleString()} ft north` : null,
+		well.feet_east_from_reference != null ? `${well.feet_east_from_reference.toLocaleString()} ft east` : null,
 		well.reference_corner ? `from ${well.reference_corner}` : null,
 	].filter(Boolean)
 	return parts.length ? parts.join(" ") : null
@@ -1167,7 +1218,7 @@ function feetLabel(value?: number | null) {
 }
 
 function rateLabel(value: number | null | undefined, unit: string) {
-	return value ? `${value.toLocaleString("en-US", { maximumFractionDigits: 2 })} ${unit}` : null
+	return hasReportedNumber(value) ? `${Number(value).toLocaleString("en-US", { maximumFractionDigits: 2 })} ${unit}` : null
 }
 
 function percentLabel(value: number, total: number) {

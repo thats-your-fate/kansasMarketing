@@ -6,6 +6,7 @@ import { BreadcrumbTrail } from "@/components/future/BreadcrumbTrail"
 import { MarketingLayout } from "@/components/future/MarketingLayout"
 import { RecordConversionCta } from "@/components/future/RecordConversionCta"
 import { apiBaseUrl } from "@/app/config"
+import { entityDirectoryPath, parseDirectoryPage } from "@/app/directory-policy.mjs"
 import { seoMetadata } from "@/app/seo"
 import { countyMetadata, fieldMetadata, operatorMetadata, unavailableMetadata, wellMetadata } from "@/app/metadata-copy.mjs"
 import { normalizeRecordIdentifier, normalizeSlug, recordPath } from "@/app/url-policy.mjs"
@@ -97,6 +98,15 @@ type KansasWellDetail = {
 	related_wells: KansasWellCard[]
 }
 
+type KansasEntityDirectory = {
+	kind: EntityKind
+	page: number
+	page_size: number
+	total_items: number
+	total_pages: number
+	items: SummaryEntry[]
+}
+
 type DetailGridRow = [string, ReactNode]
 
 const configs: Record<EntityKind, {
@@ -123,6 +133,33 @@ const configs: Record<EntityKind, {
 		path: "/fields",
 		recordKind: "field",
 	},
+}
+
+const entityIndexMetadataCopy: Record<EntityKind, { title: string; description: string }> = {
+	counties: {
+		title: "Kansas County Oil & Gas Directory | Future Wells",
+		description: "Browse crawlable Kansas county pages with public KGS well counts and county-level oil and gas context.",
+	},
+	operators: {
+		title: "Kansas Operator Well Directory | Future Wells",
+		description: "Browse crawlable Kansas operator pages with public KGS well counts and representative operator-level oil and gas context.",
+	},
+	fields: {
+		title: "Kansas Oil & Gas Field Directory | Future Wells",
+		description: "Browse crawlable Kansas field pages with public KGS well counts and representative field-level oil and gas context.",
+	},
+}
+
+export function generateEntityIndexMetadata(kind: EntityKind, page: number | null = 1): Metadata {
+	const copy = entityIndexMetadataCopy[kind]
+	const normalizedPage = page && page > 1 ? page : 1
+	const pageSuffix = normalizedPage > 1 ? ` - Page ${normalizedPage}` : ""
+	return seoMetadata({
+		title: `${copy.title}${pageSuffix}`,
+		description: normalizedPage > 1 ? `${copy.description} Page ${normalizedPage}.` : copy.description,
+		path: entityDirectoryPath(kind, normalizedPage),
+		noIndex: page === null,
+	})
 }
 
 export async function generateEntityMetadata(kind: EntityKind, slug: string): Promise<Metadata> {
@@ -488,38 +525,49 @@ export async function WellDetailPage({ api, slug }: { api: string; slug?: string
 	)
 }
 
-export async function EntityIndexPage({ kind }: { kind: EntityKind }) {
-	const page = await loadBrowse()
+export async function EntityIndexPage({ kind, page = 1 }: { kind: EntityKind; page?: number }) {
+	if (!Number.isInteger(page) || page < 1) notFound()
+	const directory = await loadDirectory(kind, page)
 	const config = configs[kind]
-	if (!page) {
-		throw new Error(`Kansas browse API unavailable for ${kind} index`)
-	}
-	const items = kind === "counties" ? page.top_counties : kind === "operators" ? page.top_operators : page.top_fields
+	if (!directory) notFound()
+	const items = directory.items
+	const browseCopy = `Browse source-backed Kansas ${config.plural.toLowerCase()} with public well counts and local landing cards. This directory uses ordinary page links so records remain discoverable without JavaScript.`
+	const breadcrumbs = [
+		{ name: "Home", path: "/" },
+		{ name: config.plural, path: entityDirectoryPath(kind) },
+	]
 	return (
 		<MarketingLayout>
+			<BreadcrumbTrail items={breadcrumbs} />
 			<section className="fwt-county-hero">
 				<div className="fwt-container fwt-county-hero-grid">
 					<div>
 						<span className="fwt-eyebrow">Kansas {config.plural}</span>
 						<h1>Kansas oil and gas {config.plural.toLowerCase()}</h1>
-						<p>Browse source-backed Kansas {config.plural.toLowerCase()} with representative public well counts and local landing cards.</p>
+						<p>{browseCopy}</p>
 					</div>
 					<div className="fwt-county-kpis">
-						<Metric label="Displayed pages" value={items.length} />
-						<Metric label="Returned wells" value={items.reduce((total, item) => total + item.well_count, 0)} />
+						<Metric label="Directory records" value={directory.total_items} />
+						<Metric label="Current page rows" value={items.length} />
+						<Metric label="Directory pages" value={directory.total_pages} />
 					</div>
 				</div>
 			</section>
 			<section className="fwt-section">
 				<div className="fwt-container">
+					<div className="fwt-county-card-meta">
+						<span>Page {directory.page.toLocaleString()} of {Math.max(directory.total_pages, 1).toLocaleString()}</span>
+						<span>{directory.total_items.toLocaleString()} {config.plural.toLowerCase()} in this public directory</span>
+					</div>
 					<div className="fwt-entry-grid">
 						{items.map((item) => (
-							<section className="fwt-copy fwt-entry-block" key={item.key}>
+							<section className="fwt-copy fwt-entry-block" key={`${item.key}:${item.display_name}`}>
 								<span className="fwt-eyebrow">{item.well_count.toLocaleString()} wells</span>
 								<h2><a href={entityPath(kind, item.display_name)}>{kind === "counties" ? countyLabel(item.display_name) : kind === "fields" ? fieldLabel(item.display_name) : item.display_name}</a></h2>
 							</section>
 						))}
 					</div>
+					<DirectoryPagination kind={kind} page={directory.page} totalPages={directory.total_pages} />
 				</div>
 			</section>
 		</MarketingLayout>
@@ -534,12 +582,8 @@ async function loadWell(api: string) {
 	return loadJson<KansasWellDetail>(`/api/ks/wells/${encodeURIComponent(api)}`)
 }
 
-async function loadBrowse() {
-	return loadJson<{
-		top_counties: SummaryEntry[]
-		top_operators: SummaryEntry[]
-		top_fields: SummaryEntry[]
-	}>(`/api/ks/browse`)
+async function loadDirectory(kind: EntityKind, page: number) {
+	return loadJson<KansasEntityDirectory>(`/api/ks/${kind}?page=${encodeURIComponent(String(page))}`)
 }
 
 async function loadJson<T>(path: string): Promise<T | null> {
@@ -565,6 +609,18 @@ function Panel({ eyebrow, title, children, variant, id }: { eyebrow: string; tit
 			<h2>{title}</h2>
 			{children}
 		</section>
+	)
+}
+
+function DirectoryPagination({ kind, page, totalPages }: { kind: EntityKind; page: number; totalPages: number }) {
+	if (totalPages <= 1) return null
+	const previous = page > 1 ? entityDirectoryPath(kind, page - 1) : null
+	const next = page < totalPages ? entityDirectoryPath(kind, page + 1) : null
+	return (
+		<nav className="fwt-county-card-meta" aria-label={`${configs[kind].plural} pagination`}>
+			<span>{previous ? <a href={previous}>Previous page</a> : "First page"}</span>
+			<span>{next ? <a href={next}>Next page</a> : "Last page"}</span>
+		</nav>
 	)
 }
 
@@ -1011,6 +1067,8 @@ function entityMetadata(kind: EntityKind, name: string, detail: Pick<KansasEntit
 export function entityPath(kind: EntityKind, value: string) {
 	return `${configs[kind].path}/${encodeURIComponent(slugify(value))}`
 }
+
+export { entityDirectoryPath, parseDirectoryPage }
 
 function requestedEntityPath(kind: EntityKind, slug: string) {
 	return `${configs[kind].path}/${encodeURIComponent(decodeRouteSegment(slug))}`

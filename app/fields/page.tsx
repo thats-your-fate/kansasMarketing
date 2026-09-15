@@ -1,18 +1,21 @@
 import type { Metadata } from "next"
-import { EntityIndexPage } from "@/app/kansas-entity-pages"
-import { seoMetadata } from "@/app/seo"
+import { EntityIndexPage, generateEntityIndexMetadata, parseDirectoryPage } from "@/app/kansas-entity-pages"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 export const fetchCache = "force-no-store"
 export const runtime = "nodejs"
 
-export const metadata: Metadata = seoMetadata({
-	title: "Kansas Oil & Gas Field Pages | Future Wells",
-	description: "Browse top Kansas field landing cards with public KGS well counts and representative field-level oil and gas context.",
-	path: "/fields",
-})
+type PageProps = {
+	searchParams?: Promise<Record<string, string | string[] | undefined>>
+}
 
-export default function KansasFieldsIndexPage() {
-	return <EntityIndexPage kind="fields" />
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+	const resolved = await searchParams
+	return generateEntityIndexMetadata("fields", parseDirectoryPage(resolved?.page))
+}
+
+export default async function KansasFieldsIndexPage({ searchParams }: PageProps) {
+	const resolved = await searchParams
+	return <EntityIndexPage kind="fields" page={parseDirectoryPage(resolved?.page) ?? 0} />
 }

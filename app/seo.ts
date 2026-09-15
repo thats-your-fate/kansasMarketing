@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { indexingEnabled, publicBaseUrl, siteConfig } from "@/app/config"
+import { buildCanonicalUrl } from "@/app/url-policy.mjs"
 
 // Simplified from coloradoMarketing's app/seo.ts: Colorado's version also
 // gates deep-pagination/thin-content well/operator/county/field pages via
@@ -44,6 +45,5 @@ export function seoMetadata({ title, description, path, type = "website", noInde
 }
 
 export function canonicalUrl(path = "/") {
-	const normalized = path.startsWith("/") ? path : `/${path}`
-	return `${siteUrl}${normalized === "/" ? "" : normalized}`
+	return buildCanonicalUrl(path, { origin: siteUrl })
 }

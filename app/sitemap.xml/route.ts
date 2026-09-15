@@ -1,5 +1,6 @@
 import { publicBaseUrl } from "@/app/config"
 import { allExplainers } from "@/app/lib/explainers"
+import { buildCanonicalUrl } from "@/app/url-policy.mjs"
 
 export const dynamic = "force-static"
 
@@ -11,7 +12,7 @@ export const dynamic = "force-static"
 export function GET() {
 	const staticPaths = ["/", "/browse", "/counties", "/operators", "/fields", "/data", "/data-coverage", "/methodology", "/activity", "/guides", "/disclaimer", "/privacy", "/terms", "/contact"]
 	const guidePaths = allExplainers().map((explainer) => explainer.href)
-	const urls = [...staticPaths, ...guidePaths].map((path) => `${publicBaseUrl}${path === "/" ? "" : path}`)
+	const urls = [...staticPaths, ...guidePaths].map((path) => buildCanonicalUrl(path, { origin: publicBaseUrl }))
 
 	const body = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
 		.map((url) => `  <url><loc>${url}</loc></url>`)

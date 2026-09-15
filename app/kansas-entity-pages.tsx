@@ -7,6 +7,7 @@ import { MarketingLayout } from "@/components/future/MarketingLayout"
 import { RecordConversionCta } from "@/components/future/RecordConversionCta"
 import { apiBaseUrl, siteConfig } from "@/app/config"
 import { seoMetadata } from "@/app/seo"
+import { normalizeRecordIdentifier, normalizeSlug, recordPath } from "@/app/url-policy.mjs"
 
 type EntityKind = "counties" | "operators" | "fields"
 type RecordKind = "county" | "operator" | "field"
@@ -1006,9 +1007,7 @@ function requestedEntityPath(kind: EntityKind, slug: string) {
 }
 
 export function wellPath(well: Pick<KansasWellCard, "api14" | "api_raw" | "kgs_kid" | "id" | "well_name" | "lease_name">) {
-	const key = normalizeWellRouteIdentifier(well.api14 || well.api_raw || well.kgs_kid || well.id)
-	const slug = canonicalWellSlug(well)
-	return slug ? `/wells/${encodeURIComponent(key)}/${encodeURIComponent(slug)}` : `/wells/${encodeURIComponent(key)}`
+	return recordPath("/wells", well.api14 || well.api_raw || well.kgs_kid || well.id, canonicalWellSlug(well))
 }
 
 export function wellTitle(well: Pick<KansasWellCard, "well_name" | "lease_name" | "api14" | "api_raw" | "kgs_kid">) {
@@ -1127,11 +1126,7 @@ function meaningfulField(value?: string | null) {
 }
 
 export function slugify(value: string) {
-	return value
-		.toLowerCase()
-		.replace(/&/g, " and ")
-		.replace(/[^a-z0-9]+/g, "-")
-		.replace(/^-+|-+$/g, "")
+	return normalizeSlug(value)
 }
 
 function canonicalWellSlug(well: Pick<KansasWellCard, "well_name" | "lease_name" | "api14" | "api_raw" | "kgs_kid">) {
@@ -1146,11 +1141,7 @@ function requestedWellPath(api: string, slug?: string[]) {
 }
 
 function normalizeWellRouteIdentifier(value?: string | null) {
-	const trimmed = String(value || "").trim()
-	if (!trimmed) return ""
-	const digits = trimmed.replace(/\D/g, "")
-	if (trimmed.includes("-") && digits.length >= 10) return digits
-	return trimmed
+	return normalizeRecordIdentifier(value)
 }
 
 function decodeRouteSegment(value: string) {

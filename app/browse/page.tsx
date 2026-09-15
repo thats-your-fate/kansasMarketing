@@ -52,13 +52,6 @@ type KansasActivityEvent = {
 	lease_name: string | null
 }
 
-const emptyBrowsePage: KansasBrowsePage = {
-	recent_activity: [],
-	top_counties: [],
-	top_operators: [],
-	top_fields: [],
-}
-
 export default async function BrowsePage() {
 	const page = await loadBrowsePage()
 	const breadcrumbs = [{ name: "Home", path: "/" }, { name: "Browse", path: "/browse" }]
@@ -73,21 +66,19 @@ export default async function BrowsePage() {
 }
 
 async function loadBrowsePage(): Promise<KansasBrowsePage> {
-	try {
-		const response = await fetch(`${apiBaseUrl}/api/ks/browse`, {
-			cache: "no-store",
-			signal: AbortSignal.timeout(15000),
-		})
-		if (!response.ok) return emptyBrowsePage
-		const envelope = (await response.json()) as BrowsePageEnvelope
-		return {
-			recent_activity: Array.isArray(envelope.data?.recent_activity) ? envelope.data.recent_activity : [],
-			top_counties: Array.isArray(envelope.data?.top_counties) ? envelope.data.top_counties : [],
-			top_operators: Array.isArray(envelope.data?.top_operators) ? envelope.data.top_operators : [],
-			top_fields: Array.isArray(envelope.data?.top_fields) ? envelope.data.top_fields : [],
-		}
-	} catch {
-		return emptyBrowsePage
+	const response = await fetch(`${apiBaseUrl}/api/ks/browse`, {
+		cache: "no-store",
+		signal: AbortSignal.timeout(15000),
+	})
+	if (!response.ok) {
+		throw new Error(`Kansas browse API unavailable: ${response.status}`)
+	}
+	const envelope = (await response.json()) as BrowsePageEnvelope
+	return {
+		recent_activity: Array.isArray(envelope.data?.recent_activity) ? envelope.data.recent_activity : [],
+		top_counties: Array.isArray(envelope.data?.top_counties) ? envelope.data.top_counties : [],
+		top_operators: Array.isArray(envelope.data?.top_operators) ? envelope.data.top_operators : [],
+		top_fields: Array.isArray(envelope.data?.top_fields) ? envelope.data.top_fields : [],
 	}
 }
 

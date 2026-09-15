@@ -487,7 +487,10 @@ export async function WellDetailPage({ api, slug }: { api: string; slug?: string
 export async function EntityIndexPage({ kind }: { kind: EntityKind }) {
 	const page = await loadBrowse()
 	const config = configs[kind]
-	const items = (kind === "counties" ? page?.top_counties : kind === "operators" ? page?.top_operators : page?.top_fields) || []
+	if (!page) {
+		throw new Error(`Kansas browse API unavailable for ${kind} index`)
+	}
+	const items = kind === "counties" ? page.top_counties : kind === "operators" ? page.top_operators : page.top_fields
 	return (
 		<MarketingLayout>
 			<section className="fwt-county-hero">
@@ -536,18 +539,18 @@ async function loadBrowse() {
 }
 
 async function loadJson<T>(path: string): Promise<T | null> {
-	try {
-		const response = await fetch(`${apiBaseUrl}${path}`, {
-			cache: "no-store",
-			signal: AbortSignal.timeout(25000),
-		})
-		if (response.status === 404) return null
-		if (!response.ok) return null
-		const envelope = (await response.json()) as Envelope<T>
-		return envelope.data
-	} catch {
+	const response = await fetch(`${apiBaseUrl}${path}`, {
+		cache: "no-store",
+		signal: AbortSignal.timeout(25000),
+	})
+	if (response.status === 404) {
 		return null
 	}
+	if (!response.ok) {
+		throw new Error(`Kansas API unavailable for ${path}: ${response.status}`)
+	}
+	const envelope = (await response.json()) as Envelope<T>
+	return envelope.data
 }
 
 function Panel({ eyebrow, title, children, variant, id }: { eyebrow: string; title: string; children: ReactNode; variant?: "well"; id?: string }) {

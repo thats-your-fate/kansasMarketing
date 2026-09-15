@@ -1,6 +1,6 @@
 import { publicBaseUrl } from "@/app/config"
 import { allExplainers } from "@/app/lib/explainers"
-import { buildCanonicalUrl } from "@/app/url-policy.mjs"
+import { eligibleSitemapUrls, sitemapXml } from "@/app/sitemap-policy.mjs"
 
 export const dynamic = "force-static"
 
@@ -10,13 +10,9 @@ export const dynamic = "force-static"
  * are served on demand from the Kansas backend rather than enumerated here.
  */
 export function GET() {
-	const staticPaths = ["/", "/browse", "/counties", "/operators", "/fields", "/data", "/data-coverage", "/methodology", "/activity", "/guides", "/disclaimer", "/privacy", "/terms", "/contact"]
 	const guidePaths = allExplainers().map((explainer) => explainer.href)
-	const urls = [...staticPaths, ...guidePaths].map((path) => buildCanonicalUrl(path, { origin: publicBaseUrl }))
-
-	const body = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
-		.map((url) => `  <url><loc>${url}</loc></url>`)
-		.join("\n")}\n</urlset>\n`
+	const urls = eligibleSitemapUrls({ origin: publicBaseUrl, guidePaths })
+	const body = sitemapXml(urls)
 
 	return new Response(body, {
 		headers: {

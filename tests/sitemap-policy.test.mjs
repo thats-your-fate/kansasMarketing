@@ -52,6 +52,36 @@ test("expanded sitemap includes backend directory detail and pagination URLs", a
 	assert.equal(new Set(urls).size, urls.length)
 })
 
+test("expanded sitemap prefers compact backend sitemap directory source", async () => {
+	const urls = await expandedEligibleSitemapUrls({
+		origin: "https://futurewellskansas.com",
+		apiBaseUrl: "http://127.0.0.1:4008",
+		fetchImpl: async (url) => {
+			assert.equal(new URL(url).pathname, "/api/ks/seo/sitemap-directories")
+			return {
+				ok: true,
+				async json() {
+					return {
+						data: {
+							directories: [
+								{
+									kind: "counties",
+									path: "/counties",
+									total_pages: 3,
+									items: [{ display_name: "Barton County" }],
+								},
+							],
+						},
+					}
+				},
+			}
+		},
+	})
+	assert(urls.includes("https://futurewellskansas.com/counties/barton-county"))
+	assert(urls.includes("https://futurewellskansas.com/counties?page=2"))
+	assert(urls.includes("https://futurewellskansas.com/counties?page=3"))
+})
+
 test("directory sitemap expansion falls back cleanly when the backend lacks routes", async () => {
 	const paths = await dynamicDirectorySitemapPaths({
 		apiBaseUrl: "http://127.0.0.1:4008",
@@ -107,7 +137,7 @@ function mockDirectoryFetch(itemsByKind, options = {}) {
 					data: {
 						kind,
 						page,
-						page_size: 100,
+						page_size: 50,
 						total_items: items.length,
 						total_pages: totalPages[kind] || 1,
 						items: page === 1 ? items : [],

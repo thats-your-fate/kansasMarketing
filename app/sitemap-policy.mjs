@@ -1,7 +1,7 @@
 import { buildCanonicalUrl, normalizeSlug } from "./url-policy.mjs"
 
 export const MAX_SITEMAP_URLS = 50000
-export const SITEMAP_DIRECTORY_PAGE_SIZE = 100
+export const SITEMAP_DIRECTORY_PAGE_SIZE = 50
 export const MAX_SITEMAP_DIRECTORY_PAGES = 500
 export const SITEMAP_DIRECTORY_FETCH_CONCURRENCY = 6
 
@@ -56,6 +56,8 @@ export async function expandedEligibleSitemapUrls({ origin, guidePaths = [], api
  */
 export async function dynamicDirectorySitemapPaths({ apiBaseUrl, fetchImpl = globalThis.fetch } = {}) {
 	if (!apiBaseUrl || typeof fetchImpl !== "function") return []
+	const sourcePaths = await dynamicDirectorySitemapSourcePaths({ apiBaseUrl, fetchImpl })
+	if (sourcePaths.length) return sourcePaths
 	const paths = []
 	for (const family of dynamicDirectoryFamilies) {
 		paths.push(...await dynamicDirectoryFamilyPaths({ ...family, apiBaseUrl, fetchImpl }))
@@ -91,6 +93,33 @@ export function assertSitemapUrlSet(urls) {
 			throw new Error(`Sitemap URL must not include noncanonical query parameters: ${url}`)
 		}
 	}
+}
+
+async function dynamicDirectorySitemapSourcePaths({ apiBaseUrl, fetchImpl }) {
+	try {
+		const response = await fetchImpl(new URL("/api/ks/seo/sitemap-directories", normalizeApiBaseUrl(apiBaseUrl)).toString(), {
+			cache: "no-store",
+			signal: typeof AbortSignal !== "undefined" && AbortSignal.timeout ? AbortSignal.timeout(15000) : undefined,
+		})
+		if (!response || !response.ok) return []
+		const payload = await response.json().catch(() => null)
+		const data = payload && typeof payload === "object" && "data" in payload ? payload.data : payload
+		const directories = data && typeof data === "object" && Array.isArray(data.directories) ? data.directories : []
+		return dedupePaths(directories.flatMap(directorySitemapPaths))
+	} catch {
+		return []
+	}
+}
+
+function directorySitemapPaths(directory) {
+	if (!directory || typeof directory !== "object") return []
+	const family = dynamicDirectoryFamilies.find((item) => item.kind === directory.kind || item.path === directory.path)
+	if (!family) return []
+	const totalPages = boundedTotalPages(directory.total_pages)
+	return [
+		...entityDetailPaths(family.path, Array.isArray(directory.items) ? directory.items : []),
+		...Array.from({ length: Math.max(totalPages - 1, 0) }, (_, index) => `${family.path}?page=${index + 2}`),
+	]
 }
 
 async function dynamicDirectoryFamilyPaths({ apiBaseUrl, fetchImpl, kind, path }) {

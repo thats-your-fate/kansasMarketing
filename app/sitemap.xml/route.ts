@@ -1,17 +1,19 @@
-import { publicBaseUrl } from "@/app/config"
+import { apiBaseUrl, publicBaseUrl } from "@/app/config"
 import { allExplainers } from "@/app/lib/explainers"
-import { eligibleSitemapUrls, sitemapXml } from "@/app/sitemap-policy.mjs"
+import { expandedEligibleSitemapUrls, sitemapXml } from "@/app/sitemap-policy.mjs"
 
-export const dynamic = "force-static"
+export const dynamic = "force-dynamic"
+export const revalidate = 3600
 
 /**
  * Lists the approved marketing, guide, and lightweight entity-directory
- * pages this repo builds. Dynamic well/operator/county/field detail cards
- * are served on demand from the Kansas backend rather than enumerated here.
+ * pages this repo builds. County/operator/field details are expanded from
+ * the Kansas backend when available; well detail pages still require a
+ * complete eligible-well sitemap source before enumeration.
  */
-export function GET() {
+export async function GET() {
 	const guidePaths = allExplainers().map((explainer) => explainer.href)
-	const urls = eligibleSitemapUrls({ origin: publicBaseUrl, guidePaths })
+	const urls = await expandedEligibleSitemapUrls({ origin: publicBaseUrl, guidePaths, apiBaseUrl })
 	const body = sitemapXml(urls)
 
 	return new Response(body, {

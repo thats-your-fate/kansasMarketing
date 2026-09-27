@@ -3,7 +3,9 @@ import test from "node:test"
 import {
 	MAX_SITEMAP_URLS,
 	assertSitemapUrlSet,
+	dynamicDirectorySitemapPaths,
 	eligibleSitemapUrls,
+	expandedEligibleSitemapUrls,
 	sitemapXml,
 	staticSitemapPaths,
 } from "../app/sitemap-policy.mjs"
@@ -21,8 +23,41 @@ test("eligible sitemap URLs align with finite public inventory", () => {
 	assert(urls.includes("https://futurewellskansas.com/guides/kcc-and-kgs-explainer"))
 	assert(!urls.includes("https://futurewellskansas.com/kansas"))
 	assert(!urls.includes("https://futurewellskansas.com/wells/15163245390000/allan-1"))
-	assert(!urls.some((url) => url.includes("?")))
 	assert.equal(new Set(urls).size, urls.length)
+})
+
+test("expanded sitemap includes backend directory detail and pagination URLs", async () => {
+	const urls = await expandedEligibleSitemapUrls({
+		origin: "https://futurewellskansas.com",
+		guidePaths,
+		apiBaseUrl: "http://127.0.0.1:4008",
+		fetchImpl: mockDirectoryFetch({
+			counties: [
+				{ display_name: "Ellis" },
+				{ display_name: "St. John & South" },
+			],
+			operators: [
+				{ display_name: "Acme Oil, LLC" },
+			],
+			fields: [
+				{ display_name: "Unnamed" },
+			],
+		}, { totalPages: { counties: 2 } }),
+	})
+	assert(urls.includes("https://futurewellskansas.com/counties/ellis"))
+	assert(urls.includes("https://futurewellskansas.com/counties/st-john-and-south"))
+	assert(urls.includes("https://futurewellskansas.com/operators/acme-oil-llc"))
+	assert(urls.includes("https://futurewellskansas.com/fields/unnamed"))
+	assert(urls.includes("https://futurewellskansas.com/counties?page=2"))
+	assert.equal(new Set(urls).size, urls.length)
+})
+
+test("directory sitemap expansion falls back cleanly when the backend lacks routes", async () => {
+	const paths = await dynamicDirectorySitemapPaths({
+		apiBaseUrl: "http://127.0.0.1:4008",
+		fetchImpl: async () => ({ ok: false, status: 404 }),
+	})
+	assert.deepEqual(paths, [])
 })
 
 test("static sitemap paths stay below single sitemap limits", () => {
@@ -44,6 +79,8 @@ test("sitemap XML is parseable and escapes URL text", () => {
 test("duplicate, query, non-https production, and oversize outputs fail", () => {
 	assert.throws(() => assertSitemapUrlSet(["https://futurewellskansas.com/a", "https://futurewellskansas.com/a"]), /Duplicate/)
 	assert.throws(() => assertSitemapUrlSet(["https://futurewellskansas.com/a?utm_source=x"]), /query/)
+	assert.doesNotThrow(() => assertSitemapUrlSet(["https://futurewellskansas.com/counties?page=2"]))
+	assert.throws(() => assertSitemapUrlSet(["https://futurewellskansas.com/counties?page=1"]), /query/)
 	assert.throws(() => assertSitemapUrlSet(["http://futurewellskansas.com/a"]), /absolute HTTPS/)
 	assert.throws(
 		() => assertSitemapUrlSet(Array.from({ length: MAX_SITEMAP_URLS + 1 }, (_, index) => `https://futurewellskansas.com/p-${index}`)),
@@ -55,3 +92,28 @@ test("local development origins remain valid for local XML checks", () => {
 	const urls = eligibleSitemapUrls({ origin: "http://localhost:3009", guidePaths: [] })
 	assert(urls.every((url) => url.startsWith("http://localhost:3009")))
 })
+
+function mockDirectoryFetch(itemsByKind, options = {}) {
+	const totalPages = options.totalPages || {}
+	return async (url) => {
+		const parsed = new URL(url)
+		const kind = parsed.pathname.split("/").pop()
+		const page = Number(parsed.searchParams.get("page") || "1")
+		const items = itemsByKind[kind] || []
+		return {
+			ok: true,
+			async json() {
+				return {
+					data: {
+						kind,
+						page,
+						page_size: 100,
+						total_items: items.length,
+						total_pages: totalPages[kind] || 1,
+						items: page === 1 ? items : [],
+					},
+				}
+			},
+		}
+	}
+}

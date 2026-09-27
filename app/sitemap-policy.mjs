@@ -3,6 +3,7 @@ import { buildCanonicalUrl, normalizeSlug } from "./url-policy.mjs"
 export const MAX_SITEMAP_URLS = 50000
 export const SITEMAP_DIRECTORY_PAGE_SIZE = 100
 export const MAX_SITEMAP_DIRECTORY_PAGES = 500
+export const SITEMAP_DIRECTORY_FETCH_CONCURRENCY = 6
 
 export const dynamicDirectoryFamilies = [
 	{ kind: "counties", path: "/counties" },
@@ -100,10 +101,13 @@ async function dynamicDirectoryFamilyPaths({ apiBaseUrl, fetchImpl, kind, path }
 		...entityDetailPaths(path, firstPage.items),
 		...Array.from({ length: Math.max(totalPages - 1, 0) }, (_, index) => `${path}?page=${index + 2}`),
 	]
-	for (let page = 2; page <= totalPages; page += 1) {
-		const pageData = await fetchDirectoryPage({ apiBaseUrl, fetchImpl, kind, page })
-		if (!pageData) break
-		paths.push(...entityDetailPaths(path, pageData.items))
+	const pages = Array.from({ length: Math.max(totalPages - 1, 0) }, (_, index) => index + 2)
+	for (let index = 0; index < pages.length; index += SITEMAP_DIRECTORY_FETCH_CONCURRENCY) {
+		const batch = pages.slice(index, index + SITEMAP_DIRECTORY_FETCH_CONCURRENCY)
+		const results = await Promise.all(batch.map((page) => fetchDirectoryPage({ apiBaseUrl, fetchImpl, kind, page })))
+		for (const pageData of results) {
+			if (pageData) paths.push(...entityDetailPaths(path, pageData.items))
+		}
 	}
 	return paths
 }

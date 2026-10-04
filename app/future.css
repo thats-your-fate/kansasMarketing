@@ -383,7 +383,7 @@ body {
 .fwt-map-card {
 	background: rgba(255, 255, 255, 0.08);
 	border: 1px solid rgba(255, 255, 255, 0.14);
-	padding: 18px;
+	padding: 14px;
 	box-shadow: 0 30px 90px rgba(0, 0, 0, 0.25);
 }
 
@@ -393,9 +393,10 @@ body {
 
 .fwt-map-preview {
 	position: relative;
-	min-height: 455px;
+	aspect-ratio: 1.08;
+	min-height: 390px;
 	background:
-		linear-gradient(90deg, rgba(15, 23, 42, 0.05) 1px, transparent 1px) 0 0 / 19% 100%,
+		linear-gradient(90deg, rgba(15, 23, 42, 0.05) 1px, transparent 1px) 0 0 / 20% 100%,
 		linear-gradient(180deg, rgba(15, 23, 42, 0.05) 1px, transparent 1px) 0 0 / 100% 20%,
 		linear-gradient(135deg, #f4f1ea 0%, #e7ede8 46%, #d9e4e0 100%);
 	overflow: hidden;
@@ -408,12 +409,35 @@ body {
 	overflow: hidden;
 }
 
+.fwt-hero-map-canvas::before {
+	content: "";
+	position: absolute;
+	left: -12%;
+	top: 17%;
+	width: 122%;
+	height: 58%;
+	border-top: 2px solid rgba(74, 120, 134, 0.2);
+	transform: rotate(-2deg);
+}
+
+.fwt-hero-map-canvas::after {
+	content: "";
+	position: absolute;
+	left: 54%;
+	top: -8%;
+	width: 18%;
+	height: 118%;
+	border-left: 3px solid rgba(54, 117, 135, 0.14);
+	border-radius: 50%;
+	transform: rotate(8deg);
+}
+
 .fwt-hero-ks-outline {
 	position: absolute;
-	left: 6%;
+	left: 8%;
 	top: 22%;
-	width: 88%;
-	height: 46%;
+	width: 84%;
+	height: 45%;
 	border: 2px solid rgba(15, 23, 42, 0.18);
 	background: rgba(255, 255, 255, 0.3);
 	/* Kansas is very close to a rectangle; the only real notch is the
@@ -424,10 +448,10 @@ body {
 
 .fwt-hero-region-band.is-sw-gas {
 	position: absolute;
-	left: 4%;
-	top: 46%;
+	left: 13%;
+	top: 42%;
 	width: 26%;
-	height: 26%;
+	height: 23%;
 	background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(199, 154, 69, 0.08));
 	border: 1px solid rgba(245, 158, 11, 0.2);
 	border-radius: 44% 56% 48% 52%;
@@ -436,10 +460,10 @@ body {
 
 .fwt-hero-region-band.is-central-oil {
 	position: absolute;
-	left: 34%;
-	top: 26%;
-	width: 34%;
-	height: 30%;
+	left: 42%;
+	top: 27%;
+	width: 29%;
+	height: 28%;
 	background: linear-gradient(135deg, rgba(124, 58, 237, 0.14), rgba(20, 184, 166, 0.07));
 	border: 1px solid rgba(124, 58, 237, 0.16);
 	border-radius: 48% 52% 46% 54%;
@@ -450,17 +474,17 @@ body {
 	position: absolute;
 	z-index: 1;
 	transform: translate(-50%, -50%);
-	color: rgba(15, 23, 42, 0.48);
+	color: rgba(15, 23, 42, 0.46);
 	font-size: 10px;
-	font-weight: 800;
-	letter-spacing: 0.08em;
+	font-weight: 900;
+	letter-spacing: 0.04em;
 	text-transform: uppercase;
 	white-space: nowrap;
 }
 
 .fwt-hero-map-label.is-emphasis {
-	color: rgba(124, 58, 237, 0.6);
-	font-size: 13px;
+	color: rgba(15, 23, 42, 0.62);
+	font-size: 12px;
 }
 
 .fwt-hero-map-shade {
@@ -521,13 +545,21 @@ body {
 	background: #7c3aed;
 }
 
+.fwt-hero-map-point.is-permit {
+	background: #f59e0b;
+}
+
+.fwt-hero-map-point.is-completed {
+	background: #14b8a6;
+}
+
 .fwt-map-stat {
 	position: absolute;
 	right: 18px;
 	bottom: 18px;
 	left: 18px;
 	display: grid;
-	grid-template-columns: repeat(2, 1fr);
+	grid-template-columns: repeat(3, 1fr);
 	gap: 8px;
 }
 
@@ -825,6 +857,86 @@ body {
 	font-size: 14px;
 	font-weight: 800;
 	text-decoration: none;
+}
+
+/* ---------------------------------------------------------------------
+ * Future Wells regional sites page
+ * --------------------------------------------------------------------- */
+
+.fwt-sites-page {
+	padding-top: 72px;
+}
+
+.fwt-sites-page .fwt-section-header {
+	align-items: end;
+}
+
+.fwt-sites-page .fwt-section-header h1 {
+	max-width: 650px;
+	margin: 0;
+	color: #fff;
+	font-size: clamp(42px, 5vw, 68px);
+	line-height: 1.04;
+}
+
+.fwt-sites-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 14px;
+}
+
+.fwt-site-card {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	min-height: 100%;
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	background: rgba(255, 255, 255, 0.06);
+	padding: 24px;
+	color: #fff;
+	text-decoration: none;
+}
+
+.fwt-site-card b {
+	color: var(--fwt-gold);
+	font-size: 12px;
+	font-weight: 900;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+}
+
+.fwt-site-card-image {
+	position: relative;
+	width: 100%;
+	aspect-ratio: 1 / 1;
+	margin-top: 16px;
+	overflow: hidden;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	background: rgba(255, 255, 255, 0.08);
+}
+
+.fwt-site-card-image img {
+	object-fit: cover;
+}
+
+.fwt-site-card h2 {
+	margin: 14px 0 8px;
+	color: #fff;
+	font-size: 24px;
+	line-height: 1.12;
+}
+
+.fwt-site-card p {
+	margin: 0;
+	color: rgba(255, 255, 255, 0.72);
+	line-height: 1.55;
+}
+
+.fwt-site-card span {
+	margin-top: auto;
+	padding-top: 20px;
+	color: var(--fwt-gold);
+	font-weight: 800;
 }
 
 /* ---------------------------------------------------------------------
@@ -1744,6 +1856,7 @@ body {
 	}
 
 	.fwt-detail-grid,
+	.fwt-sites-grid,
 	.fwt-well-map-head,
 	.fwt-record-inline-benefits {
 		grid-template-columns: 1fr;
@@ -1775,5 +1888,30 @@ body {
 		justify-self: start;
 		text-align: left;
 		white-space: normal;
+	}
+
+	.fwt-map-card {
+		padding: 10px;
+	}
+
+	.fwt-map-preview {
+		aspect-ratio: auto;
+		min-height: 390px;
+	}
+
+	.fwt-map-region-label {
+		max-width: calc(100% - 36px);
+	}
+
+	.fwt-map-stat {
+		grid-template-columns: 1fr;
+	}
+
+	.fwt-map-stat span {
+		padding: 8px 10px;
+	}
+
+	.fwt-map-stat strong {
+		font-size: 16px;
 	}
 }

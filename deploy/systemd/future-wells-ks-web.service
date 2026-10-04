@@ -1,10 +1,12 @@
 [Unit]
 Description=Future Wells Kansas public web frontend
+Wants=network-online.target
 After=network-online.target future-wells-ks-api.service
-Wants=network-online.target future-wells-ks-api.service
 
 [Service]
 Type=simple
+User=yaro
+Group=yaro
 WorkingDirectory=/home/yaro/projects/kansasMarketing
 Environment=NODE_ENV=production
 Environment=HOST=127.0.0.1
@@ -12,6 +14,7 @@ Environment=PORT=3009
 Environment=BACKEND_API_URL=http://127.0.0.1:4008
 Environment=NEXT_PUBLIC_SITE_URL=https://futurewellskansas.com
 Environment=NEXT_PUBLIC_INDEXING_ENABLED=true
+EnvironmentFile=-/etc/future-wells/kansas-web.env
 ExecStart=/usr/bin/npm run start
 Restart=on-failure
 RestartSec=5
@@ -26,4 +29,4 @@ MemoryHigh=640M
 TasksMax=256
 
 [Install]
-WantedBy=default.target
+WantedBy=multi-user.target

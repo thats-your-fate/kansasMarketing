@@ -1,7 +1,8 @@
-import Link from "next/link"
 import { siteConfig } from "@/app/config"
 import { SocialLinks } from "@/components/future/SocialLinks"
 import { futureWellsCtaHref } from "@/config/userArea"
+
+/* eslint-disable @next/next/no-html-link-for-pages */
 
 // Ported from coloradoMarketing/components/future/MarketingLayout.tsx for
 // KS-18 — same header/nav/mobile-nav/footer/ProductCta/DisclaimerStrip
@@ -15,17 +16,17 @@ export const platformDisclaimer =
 const footerDisclaimer =
 	`${siteConfig.brandName} is an independent data organization project and is not an official government website. It is not affiliated with, endorsed by, or sponsored by the ${siteConfig.officialAgencyName} or the ${siteConfig.secondaryAgencyName}. Always verify critical records with official sources.`
 
-export function MarketingLayout({ children }: { children: React.ReactNode }) {
+export function MarketingLayout({ children, pageClassName }: { children: React.ReactNode; pageClassName?: string }) {
 	const copyrightYear = new Date().getFullYear()
 
 	return (
-		<div className="fwt-page">
+		<div className={pageClassName ? `fwt-page ${pageClassName}` : "fwt-page"}>
 			<nav className="fwt-nav">
 				<div className="fwt-container fwt-nav-inner">
-					<Link className="fwt-brand" href="/">
+					<a className="fwt-brand" href="/">
 						<span className="fwt-mark">{siteConfig.stateCode}</span>
 						<span>{siteConfig.brandName}</span>
-					</Link>
+					</a>
 					<div className="fwt-nav-desktop">
 						<MarketingNavLinks />
 						<MarketingNavActions />
@@ -59,20 +60,22 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
 					</div>
 					<div>
 						<strong className="fwt-footer-heading">Data</strong>
-						<Link href="/browse">Browse Kansas</Link>
-						<Link href="/data">Kansas Data Sources</Link>
-						<Link href="/data-coverage">Data Coverage</Link>
-						<Link href={siteConfig.activityPath}>Activity</Link>
-						<Link href="/guides">Kansas Oil &amp; Gas Guides</Link>
-						<Link href="/methodology">Methodology</Link>
+						<a href="/browse">Browse Kansas</a>
+						<a href="/map">Kansas Well Map</a>
+						<a href="/data">Kansas Data Sources</a>
+						<a href="/data-coverage">Data Coverage</a>
+						<a href={siteConfig.activityPath}>Activity</a>
+						<a href="/guides">Kansas Oil &amp; Gas Guides</a>
+						<a href="/methodology">Methodology</a>
 					</div>
 					<div>
 						<strong className="fwt-footer-heading">Resources</strong>
-						<Link href="/disclaimer">Disclaimer</Link>
-						<Link href="/privacy">Privacy</Link>
-						<Link href="/terms">Terms</Link>
+						<a href="/disclaimer">Disclaimer</a>
+						<a href="/privacy">Privacy</a>
+						<a href="/terms">Terms</a>
+						<a href="/future-wells-sites">Future Wells Sites</a>
 						<a href={futureWellsCtaHref("footer_user_area")}>User Area</a>
-						<Link href="/contact">Contact</Link>
+						<a href="/contact">Contact</a>
 					</div>
 					<div>
 						<strong className="fwt-footer-heading">Company</strong>
@@ -94,11 +97,12 @@ export function MarketingLayout({ children }: { children: React.ReactNode }) {
 function MarketingNavLinks() {
 	return (
 		<div className="fwt-nav-links">
-			<Link href="/browse">Browse</Link>
-			<Link href="/data">Data</Link>
-			<Link href={siteConfig.activityPath}>Activity</Link>
-			<Link href="/guides">Guides</Link>
-			<Link href="/methodology">Methodology</Link>
+			<a href="/browse">Browse</a>
+			<a href="/map">Map</a>
+			<a href="/data">Data</a>
+			<a href={siteConfig.activityPath}>Activity</a>
+			<a href="/guides">Guides</a>
+			<a href="/methodology">Methodology</a>
 		</div>
 	)
 }

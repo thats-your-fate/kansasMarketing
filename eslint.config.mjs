@@ -8,6 +8,7 @@ export default [
 			"next-env.d.ts",
 			"node_modules/**",
 			"out/**",
+			"public/vendor/**",
 		],
 	},
 	...tseslint.configs.recommended,

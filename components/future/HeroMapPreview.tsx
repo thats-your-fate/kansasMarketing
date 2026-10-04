@@ -12,14 +12,15 @@
 // are plotted below instead of a single emphasized basin.
 
 const previewPoints = [
-	{ label: "Stevens County gas activity", status: "gas", x: 9, y: 93 },
-	{ label: "Grant County gas activity", status: "gas", x: 9, y: 82 },
-	{ label: "Kearny County gas activity", status: "gas", x: 13, y: 70 },
-	{ label: "Haskell County oil activity", status: "oil", x: 17, y: 83 },
-	{ label: "Finney County oil activity", status: "oil", x: 18, y: 66 },
-	{ label: "Ellis County oil activity", status: "oil", x: 36, y: 38 },
-	{ label: "Barton County oil activity", status: "oil", x: 44, y: 55 },
-	{ label: "Rooks County oil activity", status: "oil", x: 38, y: 20 },
+	{ label: "Stevens County gas activity", status: "gas", x: 18, y: 70 },
+	{ label: "Grant County gas activity", status: "gas", x: 20, y: 61 },
+	{ label: "Kearny County gas activity", status: "gas", x: 24, y: 55 },
+	{ label: "Haskell County oil activity", status: "oil", x: 24, y: 66 },
+	{ label: "Finney County oil activity", status: "oil", x: 28, y: 58 },
+	{ label: "Ellis County oil activity", status: "oil", x: 43, y: 36 },
+	{ label: "Barton County oil activity", status: "oil", x: 50, y: 48 },
+	{ label: "Rooks County oil activity", status: "permit", x: 42, y: 27 },
+	{ label: "Central Kansas completion activity", status: "completed", x: 57, y: 43 },
 ]
 
 const mapLabels = [
@@ -28,8 +29,8 @@ const mapLabels = [
 	{ label: "Dodge City", x: 27, y: 75 },
 	{ label: "Garden City", x: 15, y: 68 },
 	{ label: "Hays", x: 36, y: 37 },
-	{ label: "Southwest Kansas gas", x: 10, y: 60, emphasis: true },
-	{ label: "Central & north-central oil", x: 48, y: 40, emphasis: true },
+	{ label: "SW gas", x: 24, y: 50, emphasis: true },
+	{ label: "Central oil", x: 52, y: 38, emphasis: true },
 ]
 
 export function HeroMapPreview() {
@@ -51,18 +52,21 @@ export function HeroMapPreview() {
 			</div>
 			<div className="fwt-hero-map-shade" aria-hidden="true" />
 			<div className="fwt-map-region-label" aria-hidden="true">
-				<strong>Kansas oil and gas activity</strong>
-				<span>Illustrative regional activity, not a live map</span>
+				<strong>Kansas public map</strong>
+				<span>KGS wells, KCC activity, and lease context</span>
 			</div>
 			{previewPoints.map((point) => (
 				<span key={`${point.label}-${point.x}-${point.y}`} className={`fwt-hero-map-point is-${point.status}`} style={{ left: `${point.x}%`, top: `${point.y}%` }} title={point.label} />
 			))}
 			<div className="fwt-map-stat" aria-hidden="true">
 				<span>
-					<strong>Gas</strong>Southwest Kansas
+					<strong>Gas</strong>Southwest
 				</span>
 				<span>
-					<strong>Oil</strong>Central &amp; north-central Kansas
+					<strong>Oil</strong>Central
+				</span>
+				<span>
+					<strong>Permits</strong>KCC signals
 				</span>
 			</div>
 		</div>

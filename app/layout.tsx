@@ -13,6 +13,15 @@ export const metadata: Metadata = {
 	},
 	description: `${siteConfig.stateName} oil and gas well, operator, and production data sourced from the ${siteConfig.officialAgencyName} and the ${siteConfig.secondaryAgencyName}.`,
 	robots: indexingEnabled ? { index: true, follow: true } : { index: false, follow: false },
+	icons: {
+		icon: [
+			{ url: "/favicon.ico", sizes: "any" },
+			{ url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+			{ url: "/favicon-16x16.png", type: "image/png", sizes: "16x16" },
+		],
+		apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+	},
+	manifest: "/site.webmanifest",
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {

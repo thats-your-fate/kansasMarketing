@@ -176,7 +176,6 @@ function absoluteReturnTo(returnTo?: string) {
 	const publicSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || ""
 	try {
 		if (publicSiteUrl) return new URL(returnTo, publicSiteUrl).toString()
-		if (typeof window !== "undefined") return new URL(returnTo, window.location.origin).toString()
 	} catch {
 		return ""
 	}

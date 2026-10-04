@@ -2,8 +2,9 @@ import "./globals.css"
 import "./future.css"
 
 import type { Metadata } from "next"
+import Script from "next/script"
 import type { ReactNode } from "react"
-import { siteConfig, publicBaseUrl, indexingEnabled } from "@/app/config"
+import { siteConfig, publicBaseUrl, indexingEnabled, analyticsEnabled, analyticsMeasurementId } from "@/app/config"
 
 export const metadata: Metadata = {
 	metadataBase: new URL(publicBaseUrl),
@@ -27,7 +28,23 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
 	return (
 		<html lang="en">
-			<body>{children}</body>
+			<body>
+				{analyticsEnabled ? (
+					<>
+						<Script src={`https://www.googletagmanager.com/gtag/js?id=${analyticsMeasurementId}`} strategy="afterInteractive" />
+						<Script id="google-analytics" strategy="afterInteractive">
+							{`
+								window.dataLayer = window.dataLayer || [];
+								function gtag(){dataLayer.push(arguments);}
+								window.gtag = gtag;
+								gtag('js', new Date());
+								gtag('config', '${analyticsMeasurementId}');
+							`}
+						</Script>
+					</>
+				) : null}
+				{children}
+			</body>
 		</html>
 	)
 }

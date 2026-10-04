@@ -15,6 +15,7 @@ Environment=BACKEND_API_URL=http://127.0.0.1:4008
 Environment=NEXT_PUBLIC_SITE_URL=https://futurewellskansas.com
 Environment=NEXT_PUBLIC_INDEXING_ENABLED=true
 Environment=NEXT_PUBLIC_GOOGLE_ANALYTICS_ID=G-KPB1SGQDXV
+Environment=NEXT_PUBLIC_CLARITY_PROJECT_ID=ysg743uoy3
 Environment=NEXT_PUBLIC_ANALYTICS_ENABLED=true
 EnvironmentFile=-/etc/future-wells/kansas-web.env
 ExecStart=/usr/bin/npm run start

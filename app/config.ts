@@ -29,6 +29,8 @@ export const indexingEnabled = indexingRequested && isIndexablePublicBaseUrl(con
 const analyticsRequested = process.env.NEXT_PUBLIC_ANALYTICS_ENABLED === "true"
 export const analyticsMeasurementId = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID || ""
 export const analyticsEnabled = analyticsRequested && isGoogleAnalyticsMeasurementId(analyticsMeasurementId)
+export const clarityProjectId = process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID || ""
+export const clarityEnabled = analyticsRequested && isClarityProjectId(clarityProjectId)
 
 if (indexingRequested && !indexingEnabled && process.env.NODE_ENV === "production") {
 	throw new Error(
@@ -67,4 +69,8 @@ export function isIndexablePublicBaseUrl(value?: string) {
 
 export function isGoogleAnalyticsMeasurementId(value?: string) {
 	return /^G-[A-Z0-9]+$/.test(value || "")
+}
+
+export function isClarityProjectId(value?: string) {
+	return /^[a-z0-9]+$/.test(value || "")
 }

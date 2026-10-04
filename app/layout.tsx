@@ -4,7 +4,15 @@ import "./future.css"
 import type { Metadata } from "next"
 import Script from "next/script"
 import type { ReactNode } from "react"
-import { siteConfig, publicBaseUrl, indexingEnabled, analyticsEnabled, analyticsMeasurementId } from "@/app/config"
+import {
+	siteConfig,
+	publicBaseUrl,
+	indexingEnabled,
+	analyticsEnabled,
+	analyticsMeasurementId,
+	clarityEnabled,
+	clarityProjectId,
+} from "@/app/config"
 
 export const metadata: Metadata = {
 	metadataBase: new URL(publicBaseUrl),
@@ -42,6 +50,17 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 							`}
 						</Script>
 					</>
+				) : null}
+				{clarityEnabled ? (
+					<Script id="microsoft-clarity" strategy="afterInteractive">
+						{`
+							(function(c,l,a,r,i,t,y){
+								c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+								t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+								y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+							})(window, document, "clarity", "script", "${clarityProjectId}");
+						`}
+					</Script>
 				) : null}
 				{children}
 			</body>

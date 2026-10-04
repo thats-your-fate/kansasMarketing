@@ -1116,7 +1116,8 @@ function entityMetadata(kind: EntityKind, name: string, detail: Pick<KansasEntit
 }
 
 export function entityPath(kind: EntityKind, value: string) {
-	return `${configs[kind].path}/${encodeURIComponent(slugify(value))}`
+	const canonicalValue = kind === "counties" ? countyLabel(value) : value
+	return `${configs[kind].path}/${encodeURIComponent(slugify(canonicalValue))}`
 }
 
 export { entityDirectoryPath, parseDirectoryPage }

@@ -34,6 +34,7 @@ test("expanded sitemap includes backend directory detail and pagination URLs", a
 		fetchImpl: mockDirectoryFetch({
 			counties: [
 				{ display_name: "Ellis" },
+				{ display_name: "Ellis County" },
 				{ display_name: "St. John & South" },
 			],
 			operators: [
@@ -44,8 +45,9 @@ test("expanded sitemap includes backend directory detail and pagination URLs", a
 			],
 		}, { totalPages: { counties: 2 } }),
 	})
-	assert(urls.includes("https://futurewellskansas.com/counties/ellis"))
-	assert(urls.includes("https://futurewellskansas.com/counties/st-john-and-south"))
+	assert(urls.includes("https://futurewellskansas.com/counties/ellis-county"))
+	assert(!urls.includes("https://futurewellskansas.com/counties/ellis"))
+	assert(urls.includes("https://futurewellskansas.com/counties/st-john-and-south-county"))
 	assert(urls.includes("https://futurewellskansas.com/operators/acme-oil-llc"))
 	assert(urls.includes("https://futurewellskansas.com/fields/unnamed"))
 	assert(urls.includes("https://futurewellskansas.com/counties?page=2"))
@@ -78,6 +80,7 @@ test("expanded sitemap prefers compact backend sitemap directory source", async 
 		},
 	})
 	assert(urls.includes("https://futurewellskansas.com/counties/barton-county"))
+	assert(!urls.includes("https://futurewellskansas.com/counties/barton"))
 	assert(urls.includes("https://futurewellskansas.com/counties?page=2"))
 	assert(urls.includes("https://futurewellskansas.com/counties?page=3"))
 })

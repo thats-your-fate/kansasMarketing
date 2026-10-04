@@ -161,13 +161,21 @@ async function fetchDirectoryPage({ apiBaseUrl, fetchImpl, kind, page }) {
 }
 
 function entityDetailPaths(prefix, items) {
+	const family = dynamicDirectoryFamilies.find((item) => item.path === prefix)
 	return items
 		.map((item) => {
 			const source = item && typeof item === "object" ? item.display_name || item.key : ""
-			const slug = normalizeSlug(source)
+			const slug = normalizeSlug(canonicalDirectoryDisplayName(family?.kind, source))
 			return slug ? `${prefix}/${encodeURIComponent(slug)}` : null
 		})
 		.filter(Boolean)
+}
+
+function canonicalDirectoryDisplayName(kind, value) {
+	const text = String(value || "").trim()
+	if (!text) return ""
+	if (kind === "counties" && !/\bcounty$/i.test(text)) return `${text} County`
+	return text
 }
 
 function boundedTotalPages(value) {

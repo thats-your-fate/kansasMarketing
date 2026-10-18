@@ -1,3 +1,5 @@
+import { CustomerAnalytics } from "@/components/CustomerAnalytics";
+import { analyticsTrafficBootstrap } from "@/lib/analytics-traffic";
 import "./globals.css"
 import "./future.css"
 
@@ -36,8 +38,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
 	return (
 		<html lang="en">
+      <head><script id="future-wells-analytics-traffic" dangerouslySetInnerHTML={{ __html: analyticsTrafficBootstrap() }} /></head>
 			<body>
-				{analyticsEnabled ? (
+				<CustomerAnalytics>
+{analyticsEnabled ? (
 					<>
 						<Script src={`https://www.googletagmanager.com/gtag/js?id=${analyticsMeasurementId}`} strategy="afterInteractive" />
 						<Script id="google-analytics" strategy="afterInteractive">
@@ -62,7 +66,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 						`}
 					</Script>
 				) : null}
-				{children}
+				</CustomerAnalytics>
+{children}
 			</body>
 		</html>
 	)

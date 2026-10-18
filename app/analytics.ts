@@ -1,3 +1,4 @@
+import "@/lib/analytics-traffic";
 export type AnalyticsEventName = "account_cta_view" | "account_cta_click"
 
 export type AnalyticsParams = Record<string, string | number | boolean | null | undefined>
@@ -5,7 +6,7 @@ export type AnalyticsParams = Record<string, string | number | boolean | null | 
 type WindowWithGtag = Window & { gtag?: (...args: unknown[]) => void }
 
 export function trackEvent(name: AnalyticsEventName, params: AnalyticsParams = {}) {
-	if (typeof window === "undefined" || isAnalyticsBlockedPath(window.location.pathname)) return
+	if (typeof window === "undefined" || (!window.__fwAnalyticsTraffic?.allowed() || isAnalyticsBlockedPath(window.location.pathname))) return
 	const gtag = (window as WindowWithGtag).gtag
 	if (typeof gtag !== "function") return
 	try {

@@ -2,6 +2,7 @@ import { createHmac, randomBytes, scrypt as deriveKey, timingSafeEqual } from "n
 import { readFile } from "node:fs/promises"
 import { promisify } from "node:util"
 import { NextRequest, NextResponse } from "next/server"
+import { verifyAdminTurnstile } from "./admin-turnstile"
 
 const scrypt = promisify(deriveKey)
 const cookieName = "fw_ks_admin"
@@ -62,6 +63,8 @@ export async function login(request: NextRequest) {
     attempts.set(key, entry)
   }
   const body = await request.json().catch(() => null)
+  const verification = await verifyAdminTurnstile(body?.turnstile_token)
+  if (!verification.ok) return NextResponse.json({ error: verification.message }, { status: verification.status, headers: privateHeaders })
   const username = typeof body?.username === "string" ? body.username.trim().toLowerCase() : ""
   const password = typeof body?.password === "string" ? body.password : ""
   if (!password || password.length > 256) return NextResponse.json({ error: "Invalid username or password" }, { status: 401, headers: privateHeaders })

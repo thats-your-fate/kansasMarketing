@@ -2,11 +2,14 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react"
 import Link from "next/link"
+import AdminTurnstile from "@/components/future/AdminTurnstile"
 
 type Admin = { username: string; role: string }
 type ExportStatus = { active: boolean; job: { status: string; phase: string; started_at: string; completed_at?: string; export_id?: string; records_total?: number; wells?: number; uploaded?: boolean; error?: string } | null }
 
 export default function AdminConsole() {
+  const [turnstileToken, setTurnstileToken] = useState("")
+  const [verificationAttempt, setVerificationAttempt] = useState(0)
   const [admin, setAdmin] = useState<Admin | null>(null)
   const [checking, setChecking] = useState(true)
   const [busy, setBusy] = useState(false)
@@ -39,14 +42,16 @@ export default function AdminConsole() {
   }, [admin, refresh])
 
   async function signIn(event: FormEvent) {
-    event.preventDefault(); setBusy(true); setError("")
+    event.preventDefault()
+    if (!turnstileToken) { setError("Complete security verification first."); return }
+    setBusy(true); setError("")
     try {
-      const response = await fetch("/api/admin/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, password }) })
+      const response = await fetch("/api/admin/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, password, turnstile_token: turnstileToken }) })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error)
       setPassword(""); setAdmin(data.admin)
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Sign-in failed") }
-    finally { setBusy(false) }
+    finally { setTurnstileToken(""); setVerificationAttempt(value => value + 1); setBusy(false) }
   }
 
   async function exportPackage() {
@@ -80,7 +85,8 @@ export default function AdminConsole() {
         <p>Sign in to manage Kansas data exports.</p>
         <label>Username<input name="username" autoComplete="username" required value={username} onChange={event => setUsername(event.target.value)} maxLength={128} /></label>
         <label>Password<input name="password" type="password" autoComplete="current-password" required value={password} onChange={event => setPassword(event.target.value)} maxLength={256} /></label>
-        <button type="submit" disabled={busy}>{busy ? "Signing in…" : "Sign in"}</button>
+        <AdminTurnstile configUrl="/api/admin/auth/turnstile" onVerify={setTurnstileToken} resetKey={verificationAttempt} />
+        <button type="submit" disabled={busy || !turnstileToken}>{busy ? "Signing in…" : "Sign in"}</button>
       </form> : <>
         <p className="muted">Signed in as {admin.username} · {admin.role}</p>
         <h2>Manual Kansas export</h2>

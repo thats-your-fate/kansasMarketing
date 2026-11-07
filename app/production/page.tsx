@@ -21,7 +21,7 @@ export default async function Production({ searchParams }: { searchParams: Promi
   return <MarketingLayout>
     <section className="fwt-section"><div className="fwt-container">
       <span className="fwt-eyebrow">KGS monthly records</span><h1>Kansas lease production</h1>
-      <p>Imported records from June 2025 onward. Oil is measured in barrels; gas in Mcf. Kansas reports by lease, which can cover multiple wells. Missing reports do not mean zero production; the latest reporting month can be partial.</p>
+      <p>Imported records from January 2025 onward. Oil is measured in barrels; gas in Mcf. Kansas reports by lease, which can cover multiple wells. Missing reports do not mean zero production; the latest reporting month can be partial.</p>
       <form method="get" className="fwt-county-card-meta">
         <label>Well API <input name="api" defaultValue={params.api} /></label>
         <label>County <input name="county" defaultValue={params.county} /></label>

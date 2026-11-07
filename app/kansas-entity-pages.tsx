@@ -27,6 +27,8 @@ export type SummaryEntry = {
 }
 
 export type KansasWellCard = {
+	document_count?: number
+	latest_filing_date?: string | null
 	id: string
 	api14: string | null
 	api_raw: string | null
@@ -94,7 +96,10 @@ type KansasEntityDetail = {
 	completed_wells: KansasWellCard[]
 }
 
+type KansasDocument = { id: string; title: string; filing_date: string | null; effective_date: string | null; registered_at: string; page_count: number; download_url: string; source_url: string }
+
 type KansasWellDetail = {
+	documents?: KansasDocument[]
 	well: KansasWellCard
 	related_wells: KansasWellCard[]
 }
@@ -269,8 +274,9 @@ export async function EntityDetailPage({ kind, slug }: { kind: EntityKind; slug:
 						) : null}
 						<Panel eyebrow="Production-ranking subset" title="Lease-level production context">
 							<p>
-								Kansas production is generally reported at the lease level. This landing card keeps those production workflows in the Future Wells workspace and uses KGS well-master records for the entity counts shown here.
+								Kansas production is reported at the lease level. View imported monthly records separately from these well-inventory counts.
 							</p>
+                            <Link href={`/production${kind === "counties" ? `?county=${encodeURIComponent(name)}` : ""}`}>View monthly lease production</Link>
 							<DetailGrid rows={[
 								["Producing records", `${detail.producing_count.toLocaleString()} wells`],
 								["Displayed basis", "KGS well inventory snapshot"],
@@ -374,6 +380,8 @@ export async function WellDetailPage({ api, slug }: { api: string; slug?: string
 						<p>{wellSummary(well)}</p>
 						<div className="fwt-well-badges">
 							{well.lifecycle_status ? <span>{statusLabel(well.lifecycle_status)}</span> : null}
+                        {(well.document_count ?? 0) > 0 ? <span>{well.document_count} source {(well.document_count ?? 0) === 1 ? "document" : "documents"}</span> : null}
+                        {well.latest_filing_date ? <span>Latest imported filing {dateLabel(well.latest_filing_date)}</span> : null}
 							{wellApiLabel(well) ? <span>{wellApiLabel(well)}</span> : null}
 							{well.kgs_kid ? <span>KGS KID {well.kgs_kid}</span> : null}
 							{well.kcc_permit ? <span>KCC permit {well.kcc_permit}</span> : null}
@@ -390,6 +398,22 @@ export async function WellDetailPage({ api, slug }: { api: string; slug?: string
 			<section className="fwt-section">
 				<div className="fwt-container fwt-well-layout">
 					<main className="fwt-well-main">
+						<Panel eyebrow="Source documents" title="Imported public filings" variant="well">
+                            {detail.documents?.length ? <div className="fwt-county-well-list">{detail.documents.map(doc => <article key={doc.id}>
+                                <strong>{doc.title}</strong>
+                                <div className="fwt-county-card-meta">
+                                    <span>Received by KGS {dateLabel(doc.filing_date) || "Not reported"}</span>
+                                    <span>Effective date {dateLabel(doc.effective_date) || "Not verified"}</span>
+                                    <span>Registered in Future Wells {dateLabel(doc.registered_at)}</span>
+                                    <span>{doc.page_count} pages</span>
+                                </div>
+                                <a href={doc.download_url}>Download PDF</a>{" · "}<a href={doc.source_url} target="_blank" rel="noreferrer">Official source</a>
+                            </article>)}</div> : <p>No public documents have been imported for this well yet.</p>}
+                        </Panel>
+                        <Panel eyebrow="Monthly records" title="Linked lease production" variant="well">
+                            <p>Kansas reports production by lease. These volumes can cover several wells.</p>
+                            <Link href={`/production?api=${encodeURIComponent(well.api14 || well.kgs_kid || well.id)}`}>View imported lease production</Link>
+                        </Panel>
 						<Panel eyebrow="Record question" title="What this well page answers" variant="well">
 							<DetailGrid rows={[
 								["User question answered", "What public KGS well-inventory facts and relationships are available for this Kansas well?"],
@@ -731,6 +755,8 @@ function WellList({ wells, emptyText = "No representative well cards were return
 					<div className="fwt-county-card-meta">
 						{wellApiLabel(well) ? <span>{wellApiLabel(well)}</span> : null}
 						{well.lifecycle_status ? <span>{statusLabel(well.lifecycle_status)}</span> : null}
+                        {(well.document_count ?? 0) > 0 ? <span>{well.document_count} source {(well.document_count ?? 0) === 1 ? "document" : "documents"}</span> : null}
+                        {well.latest_filing_date ? <span>Latest imported filing {dateLabel(well.latest_filing_date)}</span> : null}
 						{dateLabel(primaryActivityDate(well)) ? <span>Activity date {dateLabel(primaryActivityDate(well))}</span> : null}
 					</div>
 					<a href={wellPath(well)}>View record</a>

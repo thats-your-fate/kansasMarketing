@@ -407,7 +407,7 @@ export async function WellDetailPage({ api, slug }: { api: string; slug?: string
                                     <span>Registered in Future Wells {dateLabel(doc.registered_at)}</span>
                                     <span>{doc.page_count} pages</span>
                                 </div>
-                                <a href={doc.download_url}>Download PDF</a>{" · "}<a href={doc.source_url} target="_blank" rel="noreferrer">Official source</a>
+                                <div style={{ display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" }}><a className="fwt-gold-link" href={doc.download_url}>Download PDF</a><a href={doc.source_url} target="_blank" rel="noreferrer">Official source</a></div>
                             </article>)}</div> : <p>No public documents have been imported for this well yet.</p>}
                         </Panel>
                         <Panel eyebrow="Monthly records" title="Linked lease production" variant="well">

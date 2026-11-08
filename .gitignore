@@ -7,3 +7,5 @@
 *.log
 /public/sitemaps
 *.tsbuildinfo
+
+.next-production-v1/

@@ -1915,3 +1915,246 @@ body {
 		font-size: 16px;
 	}
 }
+
+/* Monthly source reports: shared Colorado-style production presentation. */
+.fwt-production-panel {
+	display: grid;
+	gap: 18px;
+	margin-block: 10px;
+}
+
+.fwt-production-stats {
+	margin-bottom: 2px;
+}
+
+.fwt-production-chart {
+	margin: 16px 0;
+	border: 1px solid var(--fwt-line);
+	background: linear-gradient(135deg, #fff 0%, #fbfaf7 100%);
+	padding: 16px;
+}
+
+.fwt-production-chart-head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 14px;
+}
+
+.fwt-production-chart-head .fwt-eyebrow {
+	margin-bottom: 4px;
+}
+
+.fwt-production-chart-head h3 {
+	margin: 0;
+	color: var(--fwt-ink);
+	font-size: 19px;
+}
+
+.fwt-production-chart-head > span {
+	color: var(--fwt-muted);
+	font-size: 12px;
+	font-weight: 800;
+}
+
+.fwt-production-chart-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 14px;
+}
+
+.fwt-production-chart-series {
+	min-width: 0;
+	border: 1px solid rgba(8, 17, 31, 0.1);
+	background: #fff;
+	padding: 12px;
+}
+
+.fwt-production-chart-series > div:first-child,
+.fwt-production-chart-axis {
+	display: flex;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.fwt-production-chart-series strong {
+	color: var(--fwt-ink);
+	font-size: 15px;
+}
+
+.fwt-production-chart-series > div:first-child span,
+.fwt-production-chart-axis {
+	color: var(--fwt-muted);
+	font-size: 11px;
+}
+
+.fwt-production-chart-series svg {
+	display: block;
+	width: 100%;
+	height: 132px;
+	margin-top: 8px;
+	overflow: visible;
+}
+
+@media (max-width: 640px) {
+	.fwt-activity-filters {
+		grid-template-columns: 1fr;
+	}
+
+	.fwt-daily-event-head,
+	.fwt-daily-group-heading {
+		display: grid;
+	}
+
+	.fwt-production-chart-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+.fwt-production-note,
+.fwt-production-warning {
+	margin: 0;
+	border: 1px solid rgba(201, 151, 63, 0.28);
+	background: #fff8e8;
+	padding: 10px 12px;
+	color: #6f4f14;
+	font-size: 13px;
+	line-height: 1.45;
+}
+
+.fwt-production-warning {
+	border-color: rgba(185, 28, 28, 0.22);
+	background: #fff7f7;
+	color: #991b1b;
+}
+
+.fwt-production-list {
+	display: grid;
+	gap: 12px;
+}
+
+.fwt-production-month {
+	border: 1px solid var(--fwt-line);
+	background: #fff;
+	padding: 16px;
+}
+
+.fwt-production-month-head {
+	display: flex;
+	justify-content: space-between;
+	gap: 12px;
+	align-items: flex-start;
+	margin-bottom: 12px;
+}
+
+.fwt-production-month-head strong {
+	display: block;
+	font-size: 18px;
+	color: var(--fwt-ink);
+}
+
+.fwt-production-month-head span,
+.fwt-production-meta,
+.fwt-production-breakdown-row > div > span {
+	color: var(--fwt-muted);
+	font-size: 13px;
+	line-height: 1.45;
+}
+
+.fwt-production-badges {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 6px;
+}
+
+.fwt-production-badges span {
+	border: 1px solid rgba(15, 118, 110, 0.22);
+	background: #ecfdf5;
+	color: #0f766e;
+	padding: 5px 7px;
+	font-size: 11px;
+	font-weight: 900;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+}
+
+.fwt-production-badges span.warning {
+	border-color: rgba(185, 28, 28, 0.22);
+	background: #fff1f2;
+	color: #be123c;
+}
+
+.fwt-production-values,
+.fwt-production-breakdown-values {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 8px;
+}
+
+.fwt-production-values > div,
+.fwt-production-breakdown-values span {
+	border: 1px solid var(--fwt-line);
+	background: #fbfaf7;
+	padding: 10px;
+	min-width: 0;
+}
+
+.fwt-production-values span {
+	display: block;
+	color: var(--fwt-muted);
+	font-size: 11px;
+	font-weight: 900;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	margin-bottom: 4px;
+}
+
+.fwt-production-values strong {
+	color: var(--fwt-ink);
+	font-size: 16px;
+	overflow-wrap: anywhere;
+}
+
+.fwt-production-meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 14px;
+	margin-top: 10px;
+}
+
+.fwt-production-meta.compact {
+	margin-top: 8px;
+}
+
+.fwt-production-breakdown {
+	margin-top: 12px;
+}
+
+.fwt-production-breakdown summary {
+	cursor: pointer;
+	color: var(--fwt-ink);
+	font-weight: 900;
+}
+
+.fwt-production-breakdown > div {
+	display: grid;
+	gap: 10px;
+	margin-top: 10px;
+}
+
+.fwt-production-breakdown-row {
+	border: 1px solid rgba(8, 17, 31, 0.1);
+	background: #fbfaf7;
+	padding: 12px;
+}
+
+.fwt-production-breakdown-row > div > strong {
+	display: block;
+	color: var(--fwt-ink);
+	margin-bottom: 2px;
+}
+
+
+@media(max-width:640px){.fwt-production-chart-grid,.fwt-production-values{grid-template-columns:1fr}.fwt-production-month-head{display:grid}}

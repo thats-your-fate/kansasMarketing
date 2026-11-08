@@ -1,3 +1,4 @@
+import { KansasMonthlyProduction } from "@/components/future/KansasMonthlyProduction"
 import type { Metadata } from "next"
 import Link from "next/link"
 import type { ReactNode } from "react"
@@ -444,7 +445,8 @@ export async function WellDetailPage({ api, slug }: { api: string; slug?: string
 							placement="content"
 						/>
 						<SurfaceMapPanel well={well} />
-						<ProductionContextPanel well={well} />
+						<KansasMonthlyProduction api={well.api14 || well.api_raw || well.kgs_kid} />
+                    <ProductionContextPanel well={well} />
 						<ActivityTimelinePanel well={well} />
 						<LifecyclePanel well={well} />
 						<Panel eyebrow="Geometry" title="Trajectory summary" variant="well">

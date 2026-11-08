@@ -4,6 +4,7 @@ const backendApiUrl = process.env.BACKEND_API_URL || "http://127.0.0.1:4008"
 const noIndexFollowHeaders = [{ key: "X-Robots-Tag", value: "noindex, follow" }]
 
 const nextConfig = {
+ experimental: {cpus: 1},
 	distDir: process.env.NEXT_DIST_DIR || ".next",
 	async headers() {
 		return [

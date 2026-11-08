@@ -7,3 +7,5 @@ Kansas keeps each verified linked lease separate. Its volumes are explicitly lea
 The display omits the oldest partially loaded month when a source response is truncated. The source import window and latest reporting period remain coverage limits. Native deployments build an unused directory before switching the web service.
 
 Validation: display tests cover null versus zero, calendar gaps, ambiguous months and state reporting grain. Full frontend test suite, TypeScript and native production build are required before activation.
+
+Verified live on November 8, 2026 over HTTPS. Current source-grain/month cards and raw server-rendered SVG charts are present; the native build and TypeScript checks pass. The exact well/lease API lookup now returns its 18 sample records in 1.2 seconds instead of about 25 seconds. Browser verification confirms the summary grid, lease label, unknown oil gaps and reported gas values.

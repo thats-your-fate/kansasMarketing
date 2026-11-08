@@ -9,3 +9,5 @@
 *.tsbuildinfo
 
 .next-production-v1/
+
+.next-production-v2/

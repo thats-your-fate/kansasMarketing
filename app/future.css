@@ -2158,3 +2158,39 @@ body {
 
 
 @media(max-width:640px){.fwt-production-chart-grid,.fwt-production-values{grid-template-columns:1fr}.fwt-production-month-head{display:grid}}
+
+/* Keep the period summary aligned with the other state production panels. */
+.fwt-production-stats {
+ display: grid;
+ grid-template-columns: repeat(2, minmax(0, 1fr));
+ gap: 10px;
+}
+.fwt-production-stats > div {
+ min-width: 0;
+ border: 1px solid var(--fwt-line);
+ background: #fbfaf7;
+ padding: 16px;
+}
+.fwt-production-stats span {
+ display: block;
+ color: var(--fwt-muted);
+ font-size: 12px;
+ font-weight: 800;
+ letter-spacing: .1em;
+ text-transform: uppercase;
+ margin-bottom: 8px;
+}
+.fwt-production-stats strong,
+.fwt-production-values strong,
+.fwt-production-month-head > strong,
+.fwt-production-chart-series strong {
+ display: block;
+ color: var(--fwt-ink);
+ font-family: Georgia, "Times New Roman", serif;
+ font-style: italic;
+ font-weight: 400;
+ overflow-wrap: anywhere;
+}
+@media (max-width: 480px) {
+ .fwt-production-stats { grid-template-columns: 1fr; }
+}

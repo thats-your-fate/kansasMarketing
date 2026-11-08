@@ -32,9 +32,10 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    ".next-production-v1/types/**/*.ts",
     ".next/types/**/*.ts",
     "next-env.d.ts",
-    ".next-production-v1/types/**/*.ts"
+    ".next-production-v2/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

@@ -15,7 +15,7 @@ Environment=NEXT_PUBLIC_INDEXING_ENABLED=true
 Environment=NEXT_PUBLIC_GOOGLE_ANALYTICS_ID=G-KPB1SGQDXV
 Environment=NEXT_PUBLIC_CLARITY_PROJECT_ID=ysg743uoy3
 Environment=NEXT_PUBLIC_ANALYTICS_ENABLED=true
-ExecStart=/usr/bin/env NEXT_DIST_DIR=.next-production-v1 /usr/bin/node /home/yaro/projects/kansasMarketing/node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3009
+ExecStart=/usr/bin/env NEXT_DIST_DIR=.next-production-v2 /usr/bin/node /home/yaro/projects/kansasMarketing/node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3009
 Restart=on-failure
 RestartSec=5
 SyslogIdentifier=future-wells-ks-web

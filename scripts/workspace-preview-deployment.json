@@ -1,0 +1,8 @@
+{
+  "state": "KS",
+  "slug": "kansas",
+  "unit": "future-wells-ks-web.service",
+  "port": 3009,
+  "scope": "user",
+  "trackedUnit": "deploy/systemd/user/future-wells-ks-web.service"
+}

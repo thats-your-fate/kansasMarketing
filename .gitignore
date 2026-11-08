@@ -11,3 +11,6 @@
 .next-production-v1/
 
 .next-production-v2/
+
+# Native homepage preview build, separate from the running release.
+.next-workspace-preview-*/

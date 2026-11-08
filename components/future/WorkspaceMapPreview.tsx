@@ -16,7 +16,6 @@ export function WorkspaceMapPreview({ stateName, slug, wellName, api, documentCo
   </div>
   <a className={styles.imageLink} href={image} target="_blank" rel="noopener" aria-label={"Open full-size " + stateName + " " + view + " screenshot"}>
    {/* A local screenshot keeps the homepage lightweight and has no map API dependency. */}
-   {/* eslint-disable-next-line @next/next/no-img-element */}
    <img src={image} width={1000} height={434} alt={stateName + " workspace map: " + wellName + ", API " + api + ", with " + (view === "production" ? productionLabel : "recent activity and source documents") + "."} fetchPriority={view === "production" ? "high" : "auto"} />
    <span className={styles.enlarge}>View full screenshot ↗</span>
   </a>

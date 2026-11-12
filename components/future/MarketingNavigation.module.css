@@ -1,0 +1,170 @@
+/* Keep regional navigation aligned with the Future Wells Co public header. */
+.header :global(.fwt-nav-inner) {
+	position: relative;
+	min-width: 0;
+}
+
+.header :global(.fwt-brand) {
+	min-width: 0;
+	max-width: 100%;
+}
+
+.header :global(.fwt-mark) {
+	flex: 0 0 auto;
+}
+
+.header :global(.fwt-brand span:last-child) {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.header :global(.fwt-nav-desktop) {
+	flex: 1;
+	min-width: 0;
+}
+
+.header :global(.fwt-nav-links) {
+	gap: 18px;
+}
+
+.header :global(.fwt-nav-links a),
+.header :global(.fwt-nav-actions .fwt-btn) {
+	white-space: nowrap;
+}
+
+.header :global(.fwt-nav-actions) {
+	flex-wrap: nowrap;
+	flex-shrink: 0;
+}
+
+.header :global(.fwt-mobile-nav summary:focus-visible),
+.header :global(a:focus-visible) {
+	outline: 2px solid #f1d08a;
+	outline-offset: 3px;
+}
+
+@media (max-width: 1199px) {
+	.header :global(.fwt-nav-inner) {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		min-height: 64px;
+		gap: 12px;
+	}
+
+	.header :global(.fwt-nav-desktop) {
+		display: none;
+	}
+
+	.header :global(.fwt-mobile-nav) {
+		display: flex;
+		align-items: center;
+		position: static;
+		flex: 0 0 auto;
+	}
+
+	.header :global(.fwt-mobile-nav summary) {
+		box-sizing: border-box;
+		display: inline-flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 4px;
+		width: 44px;
+		height: 44px;
+		padding: 0;
+		border: 1px solid rgba(8, 17, 31, 0.22);
+		background: #fff;
+		box-shadow: 0 8px 20px rgba(8, 17, 31, 0.08);
+		cursor: pointer;
+		list-style: none;
+	}
+
+	.header :global(.fwt-mobile-nav summary::-webkit-details-marker) {
+		display: none;
+	}
+
+	.header :global(.fwt-mobile-nav summary span) {
+		display: block;
+		width: 20px;
+		height: 2px;
+		margin: 0;
+		background: #08111f;
+	}
+
+	.header :global(.fwt-mobile-nav-menu) {
+		box-sizing: border-box;
+		position: absolute;
+		top: 100%;
+		left: 0;
+		right: 0;
+		z-index: 20;
+		display: grid;
+		width: 100%;
+		min-width: 0;
+		max-height: calc(100dvh - 88px);
+		overflow-x: hidden;
+		overflow-y: auto;
+		gap: 14px;
+		padding: 16px;
+		border: 1px solid rgba(241, 208, 138, 0.18);
+		background: rgba(8, 17, 31, 0.98);
+		box-shadow: 0 20px 48px rgba(0, 0, 0, 0.34);
+	}
+
+	.header :global(.fwt-mobile-nav .fwt-nav-links),
+	.header :global(.fwt-mobile-nav .fwt-nav-actions) {
+		box-sizing: border-box;
+		display: grid;
+		width: 100%;
+		min-width: 0;
+		gap: 0;
+		justify-content: stretch;
+	}
+
+	.header :global(.fwt-mobile-nav .fwt-nav-links a) {
+		box-sizing: border-box;
+		display: flex;
+		align-items: center;
+		width: 100%;
+		min-width: 0;
+		min-height: 42px;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+	}
+
+	.header :global(.fwt-mobile-nav .fwt-nav-links a:last-child) {
+		border-bottom: 0;
+	}
+
+	.header :global(.fwt-mobile-nav .fwt-nav-actions) {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 10px;
+	}
+
+	.header :global(.fwt-mobile-nav .fwt-nav-actions:has(> a:only-child)) {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.header :global(.fwt-mobile-nav .fwt-btn) {
+		box-sizing: border-box;
+		width: 100%;
+		min-width: 0;
+		max-width: 100%;
+		min-height: 44px;
+		padding: 10px 12px;
+		white-space: normal;
+		text-align: center;
+	}
+
+	.header :global(.fwt-mobile-nav .fwt-btn.ghost) {
+		border-color: #fff;
+		background: #fff;
+		color: #08111f;
+	}
+
+	.header :global(.fwt-mobile-nav .fwt-btn.ghost:hover) {
+		background: #f7f3eb;
+	}
+}

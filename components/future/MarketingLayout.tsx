@@ -1,3 +1,4 @@
+import navigationStyles from "./MarketingNavigation.module.css"
 import { siteConfig } from "@/app/config"
 import { SocialLinks } from "@/components/future/SocialLinks"
 import { futureWellsCtaHref } from "@/config/userArea"
@@ -21,7 +22,7 @@ export function MarketingLayout({ children, pageClassName }: { children: React.R
 
 	return (
 		<div className={pageClassName ? `fwt-page ${pageClassName}` : "fwt-page"}>
-			<nav className="fwt-nav">
+			<nav className={`fwt-nav ${navigationStyles.header}`} aria-label="Primary navigation">
 				<div className="fwt-container fwt-nav-inner">
 					<a className="fwt-brand" href="/">
 						<span className="fwt-mark">{siteConfig.stateCode}</span>
@@ -32,12 +33,12 @@ export function MarketingLayout({ children, pageClassName }: { children: React.R
 						<MarketingNavActions />
 					</div>
 					<details className="fwt-mobile-nav">
-						<summary aria-label="Open navigation">
+						<summary aria-label="Toggle navigation" aria-controls="fwt-mobile-nav-menu">
 							<span />
 							<span />
 							<span />
 						</summary>
-						<div className="fwt-mobile-nav-menu">
+						<div className="fwt-mobile-nav-menu" id="fwt-mobile-nav-menu">
 							<MarketingNavLinks />
 							<MarketingNavActions />
 						</div>
@@ -103,6 +104,7 @@ function MarketingNavLinks() {
 			<a href={siteConfig.activityPath}>Activity</a>
 			<a href="/guides">Guides</a>
 			<a href="/methodology">Methodology</a>
+			<a href="https://futurewells.co/api-platform">API Platform</a>
 		</div>
 	)
 }

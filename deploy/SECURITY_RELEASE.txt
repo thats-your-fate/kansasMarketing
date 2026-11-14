@@ -1,0 +1,11 @@
+SEO security remediation, 14 November 2026. Native Node/systemd only.
+Build with the committed scripts/prepare-security-release.py using the current
+service port, dist directory and scope. Candidate verification preserves robots,
+sitemap bytes, canonical origin, indexing policy, login status and compiled CSS.
+The optional --activate-user switch changes only a user-manager web unit.
+Root-managed web units require the separately reviewed administrator installer.
+Rollback: remove the security release drop-in, daemon-reload, and restart that
+web unit to restore its previous startup definition and untouched old build.
+Builds and private environments remain separate from Git. No API, database,
+account, ingestion timer or OS maintenance is changed by this frontend release.
+Runtime isolation remains a separate migration requiring exporter/job review.

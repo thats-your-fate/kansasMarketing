@@ -59,7 +59,7 @@ def main():
     dst.parent.mkdir(parents=True,exist_ok=True);dst.symlink_to(src)
   if not (ROOT/a.dist/'BUILD_ID').is_file():
    print(json.dumps({'phase':'install-and-build','site':a.state,'commit':sha}),flush=True)
-   for label,args in [('install',['npm','ci','--ignore-scripts','--no-audit','--no-fund']),('security-tests',['node','--test','tests/security-hardening.test.mjs']),('build',['nice','-n','15','node','node_modules/next/dist/bin/next','build']),('typecheck',['node','node_modules/typescript/bin/tsc','--noEmit'])]:
+   for label,args in [('install',['npm','ci','--include=dev','--ignore-scripts','--no-audit','--no-fund']),('security-tests',['node','--test','tests/security-hardening.test.mjs']),('build',['nice','-n','15','node','node_modules/next/dist/bin/next','build']),('typecheck',['node','node_modules/typescript/bin/tsc','--noEmit'])]:
     with (state/(label+'.log')).open('w') as log:run(args,cwd=ROOT,env=env,stdout=log,stderr=subprocess.STDOUT)
   versions=json.loads(out(['node','-e',"console.log(JSON.stringify({next:require("+json.dumps(str(ROOT/'node_modules/next/package.json'))+").version,sharp:require("+json.dumps(str(ROOT/'node_modules/sharp/package.json'))+").version}))"]))
   assert versions=={'next':'15.5.28','sharp':'0.35.5'}

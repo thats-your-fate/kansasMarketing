@@ -1,11 +1,31 @@
-SEO security remediation, 14 November 2026. Native Node/systemd only.
-Build with the committed scripts/prepare-security-release.py using the current
-service port, dist directory and scope. Candidate verification preserves robots,
-sitemap bytes, canonical origin, indexing policy, login status and compiled CSS.
-The optional --activate-user switch changes only a user-manager web unit.
-Root-managed web units require the separately reviewed administrator installer.
-Rollback: remove the security release drop-in, daemon-reload, and restart that
-web unit to restore its previous startup definition and untouched old build.
-Builds and private environments remain separate from Git. No API, database,
-account, ingestion timer or OS maintenance is changed by this frontend release.
-Runtime isolation remains a separate migration requiring exporter/job review.
+SEO security remediation, 14-16 November 2026. Native Node/systemd only.
+
+Since 16 November 2026 the Kansas web and API run as the dedicated
+fw-ks-runtime account from a root-sealed release, managed by the fixed helper
+/usr/local/libexec/seo_ks_isolation.py. The user-manager web unit and the
+--activate-user switch no longer apply to this site.
+
+Release a new web commit:
+1. Commit and push it, then on the host fetch it and add a detached worktree at
+   /home/yaro/releases/kansasMarketing/security-<commit>.
+2. In that worktree build with the committed builder:
+     scripts/prepare-security-release.py --repo kansasMarketing
+       --runtime /home/yaro/projects/kansasMarketing --state ks --port 3009
+       --dist .next-workspace-preview-v1 --scope system --isolated-ks
+   Public settings come from deploy/kansas-public.env and sitemap XML from the
+   helper's validated --status snapshot; the isolated process environment is
+   never read. Candidate verification preserves robots, sitemap bytes,
+   canonical origin, indexing policy, login status and compiled CSS.
+3. Stage it with the ops helper's --stage --api <api commit> --web <commit>.
+4. sudo -n /usr/local/libexec/seo_ks_isolation.py --promote
+   The helper seals the release, previews it on loopback, checks parity and
+   switches the services; a failed check restores the serving release.
+
+Rollback: sudo -n /usr/local/libexec/seo_ks_isolation.py --rollback returns to
+the previous sealed release through the same checks. --status reports the
+serving release, process identities and timers.
+
+The admin Export button and the Future Wells Co sync key go through the fixed
+helper's broker; neither uses the deployment account's service manager.
+Builds and private environments remain separate from Git. A web release does
+not change the API binaries, database, accounts, ingestion schedules or OS.

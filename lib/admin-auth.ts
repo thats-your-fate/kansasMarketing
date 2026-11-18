@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises"
 import { promisify } from "node:util"
 import { NextRequest, NextResponse } from "next/server"
 import { verifyAdminTurnstile } from "./admin-turnstile"
-import { TwoFactorFailure, begin, loginRequired, sessionAdmin, unavailable, type TwoFactorContext, type TwoFactorCookie, type TwoFactorRequest, type TwoFactorResult } from "./admin-totp.mjs"
+import { TwoFactorFailure, begin, loginRequired, sessionAdmin, signOut, unavailable, type TwoFactorContext, type TwoFactorCookie, type TwoFactorRequest, type TwoFactorResult } from "./admin-totp.mjs"
 
 const scrypt = promisify(deriveKey)
 const cookieName = "fw_ks_admin"
@@ -32,8 +32,8 @@ export function sameOrigin(request: NextRequest) {
   return allowed.includes(origin)
 }
 
-async function passwordMatches(password: string, config: Credentials) {
-  if (!password || password.length > 256) return false
+async function passwordMatches(password: string, config: Credentials, maxLength = 256) {
+  if (!password || password.length > maxLength) return false
   return equal((await scrypt(password, config.salt, 64) as Buffer).toString("hex"), config.password_hash)
 }
 
@@ -46,7 +46,8 @@ export function twoFactorContext(): TwoFactorContext {
       const config = await credentials()
       return { username: config.username, role: config.role, session_key: config.session_key }
     },
-    verifyPassword: async password => passwordMatches(password, await credentials()),
+    // The shared security screen accepts up to 512 characters; the core bounds the input to the same length.
+    verifyPassword: async password => passwordMatches(password, await credentials(), 512),
   }
 }
 
@@ -65,6 +66,33 @@ export async function currentAdmin(request: NextRequest) {
 function setCookie(response: NextResponse, name: string, path: string, value: TwoFactorCookie) {
   if (value === undefined) return
   response.cookies.set(name, value?.token || "", { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict", path, maxAge: value?.maxAge || 0 })
+}
+
+const maxBodyBytes = 4096
+
+/**
+ * The request body as text, or null when it is not a small, length-declared body. The
+ * declared length is checked before anything is read, and reading stops at the cap even if
+ * the declaration was untrue.
+ */
+async function boundedBody(request: NextRequest) {
+  const declared = request.headers.get("content-length") || ""
+  if (!/^[0-9]{1,6}$/.test(declared) || Number(declared) > maxBodyBytes) return null
+  if (!request.body) return ""
+  const reader = request.body.getReader()
+  const chunks: Uint8Array[] = []
+  let size = 0
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    size += value.byteLength
+    if (size > maxBodyBytes) {
+      await reader.cancel().catch(() => {})
+      return null
+    }
+    chunks.push(value)
+  }
+  return Buffer.concat(chunks).toString("utf8")
 }
 
 function twoFactorResponse(result: TwoFactorResult) {
@@ -94,10 +122,8 @@ export async function twoFactorRoute(request: NextRequest, handler: (context: Tw
     if (guard && !(await guard(request))) throw loginRequired()
     let input: unknown = null
     if (request.method === "POST") {
-      const tooLarge = () => NextResponse.json({ error: { code: "request_too_large", message: "Request too large." } }, { status: 413, headers: privateHeaders })
-      if (Number(request.headers.get("content-length") || 0) > 4096) return tooLarge()
-      const text = await request.text()
-      if (text.length > 4096) return tooLarge()
+      const text = await boundedBody(request)
+      if (text === null) return NextResponse.json({ error: { code: "request_too_large", message: "Request too large." } }, { status: 413, headers: privateHeaders })
       try { input = JSON.parse(text) } catch { input = null }
     }
     return twoFactorResponse(await handler(twoFactorContext(), {
@@ -143,9 +169,14 @@ export async function login(request: NextRequest) {
   catch (error) { return twoFactorFailure(error) }
 }
 
-export function logout() {
-  const response = NextResponse.json({ success: true }, { headers: privateHeaders })
-  setCookie(response, cookieName, "/", null)
-  setCookie(response, challengeCookieName, challengeCookiePath, null)
-  return response
+/** Clears both cookies and revokes the session on the server; a storage failure still clears the cookies. */
+export async function logout(request: NextRequest) {
+  try {
+    return twoFactorResponse(await signOut(twoFactorContext(), { session: request.cookies.get(cookieName)?.value, challenge: request.cookies.get(challengeCookieName)?.value }))
+  } catch (error) {
+    const response = twoFactorFailure(error)
+    setCookie(response, cookieName, "/", null)
+    setCookie(response, challengeCookieName, challengeCookiePath, null)
+    return response
+  }
 }

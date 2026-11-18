@@ -29,6 +29,7 @@ export function unavailable(): TwoFactorFailure
 export function loginRequired(): TwoFactorFailure
 export function begin(ctx: TwoFactorContext): Promise<TwoFactorResult>
 export function sessionAdmin(ctx: TwoFactorContext, token: string | undefined): Promise<{username: string; role: string} | null>
+export function signOut(ctx: TwoFactorContext, request: TwoFactorRequest): Promise<TwoFactorResult>
 export function status(ctx: TwoFactorContext, request: TwoFactorRequest): Promise<TwoFactorResult>
 export function enrollStart(ctx: TwoFactorContext, request: TwoFactorRequest): Promise<TwoFactorResult>
 export function enrollConfirm(ctx: TwoFactorContext, request: TwoFactorRequest): Promise<TwoFactorResult>

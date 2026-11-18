@@ -7,7 +7,7 @@ export class StateUnavailable extends Error {
 export function stateFilePath(env: Record<string, string | undefined>): string
 export function readState(file: string): Promise<TwoFactorState>
 export function writeState(file: string, state: TwoFactorState): Promise<void>
-export function withState<T>(file: string, change: (state: TwoFactorState) => T | Promise<T>): Promise<T>
+export function withState<T>(file: string, change: (state: TwoFactorState) => T | Promise<T>, options?: {lockWaitMs?: number}): Promise<T>
 export function accountOf(state: TwoFactorState, username: string): Record<string, unknown>
 export function revokeSessions(account: Record<string, unknown>, nowMs: number): number
 export function removeSecondFactor(state: TwoFactorState, username: string, nowMs: number): boolean

@@ -42,13 +42,20 @@ would lose the authenticator).
    `/api/admin/auth/me`, `/api/admin/exports` and the authenticator-management routes)
    accepts a cookie only if it has the marker, the account has an active authenticator and
    the cookie was issued at or after the account's `sessions_valid_after` time in the state
-   file. Every cookie issued by the release before two-factor is refused, and a challenge
+   file. Enrolling an authenticator moves that time to the moment of enrollment, so no cookie
+   from before the authenticator became active is accepted, even if the state file was lost
+   in between. Every cookie issued by the release before two-factor is refused, and a challenge
    cookie can never be used as a session (or the other way round).
 
 Other endpoints (all JSON, `Cache-Control: private, no-store`, same-origin enforced on every
 POST): `GET /api/admin/auth/2fa/status`, and for a signed-in admin
 `POST .../2fa/replace/start`, `.../replace/confirm`, `.../recovery-codes`, `.../disable`.
-Errors are `{"error":{"code","message"}}`.
+Errors are `{"error":{"code","message"}}`. Request bodies must declare a Content-Length of at
+most 4096 bytes and are read with that cap (otherwise 413).
+
+`POST /api/admin/auth/logout` clears both cookies and, for a valid session, moves
+`sessions_valid_after` forward, so a copy of the cookie stops working. Sessions are stateless,
+so this signs the account out in every browser, not only the one that clicked *Sign out*.
 
 Protections: each account has its own random 160-bit secret, stored AES-256-GCM encrypted
 and bound to the username; a code is accepted once (the accepted time step is recorded, so a
@@ -69,18 +76,24 @@ time step, recovery-code hashes with their used time, the attempt window,
 contains no plaintext secret, code or password, but treat it as sensitive: mode 0600, owned
 by the web process user.
 
-Every change is read-modify-write under one in-process lock and replaces the file atomically
-(temporary file in the same directory, fsync, rename). The file is re-read for every request
-and never cached in memory. **This is only correct with one Next server process for the
-site.** Kansas runs exactly one: `scripts/start-security-web.sh` executes a single
-`next start` under one systemd service. Do not run the admin area behind several workers
-(cluster mode, PM2 instances, a second service) without first moving this state to a store
-with real transactions; two processes could otherwise both accept the same code.
+Every change is a read-modify-write that holds an in-process queue **and** an exclusive
+lock file beside the state file (`state.json.lock`, created with `O_EXCL`, holding the
+owner's pid), and replaces the file atomically (temporary file in the same directory, fsync,
+rename). The file is re-read for every request, never cached in memory, and validated field
+by field: a file that is not exactly what this code writes (an account that is not an
+object, `"active": true`, a junk challenge, an unknown field) is refused with 503 rather
+than read as "not enrolled" or "enrolled". The lock is waited for at most 5 seconds (then
+503); a lock older than 15 seconds, or older than 2 seconds whose owning process is gone, is
+treated as abandoned and taken over. Left-over temporary files older than a minute are
+removed on the next write.
 
-During `seo_ks_isolation.py --promote`/`--rollback` a second, loopback-only preview process
-of the candidate release runs for a short time with the same environment and state file. It
-is not reachable from the internet and its checks only read. Do not sign in while a
-promotion is running.
+Kansas runs one Next server process: `scripts/start-security-web.sh` executes a single
+`next start` under one systemd service. The lock file makes the occasional second process
+safe — the owner reset script, and the loopback-only preview process that
+`seo_ks_isolation.py --promote`/`--rollback` starts for a short time with the same
+environment and state file — so neither can overwrite an update of the serving process. It
+is not a design for several permanent workers: do not run the admin area in cluster mode,
+under PM2 instances or as a second service without moving this state to a real database.
 
 ## Owner setup (once)
 
@@ -151,22 +164,24 @@ The reset removes the account's authenticator, pending setup, recovery codes, at
 and open sign-in steps, and moves `sessions_valid_after` forward so every existing session
 cookie is refused. It needs neither the encryption key nor the password and prints no secret.
 
-Who runs it: the site owner, on the host, as **root** (the deployment account cannot read
-the runtime's state directory, and its sudo policy only covers the fixed isolation helper).
-The script keeps the file owned by `fw-ks-runtime` with mode 0600. Run the copy inside the
-root-sealed serving release (`seo_ks_isolation.py --status` names the serving API and web
-commits) and avoid running it while someone is signing in:
+Who runs it: the site owner, on the host, **as the web runtime user `fw-ks-runtime`**, from
+a root shell. The script refuses to run as uid 0, because the state file must stay owned by
+the runtime user (mode 0600); the deployment account cannot do it, since it can neither read
+the runtime's state directory nor use sudo for anything but the fixed isolation helper. Run
+the copy inside the root-sealed serving release (`seo_ks_isolation.py --status` names the
+serving API and web commits):
 
 ```bash
 cd /srv/future-wells/ks/releases/<api commit>-<web commit>/frontend
-env KANSAS_ADMIN_TOTP_STATE_FILE=/var/lib/future-wells-ks/web-data/admin-totp/state.json \
+runuser -u fw-ks-runtime -- env KANSAS_ADMIN_TOTP_STATE_FILE=/var/lib/future-wells-ks/web-data/admin-totp/state.json \
   /usr/bin/node scripts/admin-totp-reset.mjs --username <admin username>
 ```
 
-It answers with one line saying what was removed; an unknown username changes nothing and
-exits with status 1.
+It takes the same lock as the running server, so it is safe while the site is serving. It
+answers with one line saying what was removed; an unknown username changes nothing and exits
+with status 1.
 
-Locally, run the same command from the repository as the user that runs `next dev`/`next start`.
+Locally, run it without `runuser`, from the repository, as the user that runs `next dev`/`next start`.
 The running server needs no restart: it re-reads the file on every request.
 
 ## Rollout and rollback
@@ -201,6 +216,11 @@ state file: enrollment (closed without the owner code, wrong code, enabled only 
 code), login, recovery-code single use, code replay and older steps, rate limiting,
 challenge expiry and attempt cap, reauthentication for replace/new codes/remove, session
 revocation, the reset script, refusal of pre-two-factor and challenge cookies as sessions,
-wrong key and wrong account, concurrent double spend, and a source check that every
-`/api/admin` route outside the sign-in steps requires the signed-in session.
+wrong key and wrong account, malformed state files, concurrent double spend, two processes
+writing at once and abandoned locks, sign-out revocation, and a per-handler source check that
+every `/api/admin` route outside the sign-in steps starts with the signed-in-session guard.
+`tests/admin-auth-http.test.mjs` calls the real route handlers with request objects (no
+server, CAPTCHA provider stubbed): origin and `Sec-Fetch-Site` refusals, body-size limits,
+cookie attributes on the password step, verification and logout, and the 429 on
+reauthentication.
 `tests/admin-two-factor.test.mjs` covers the shared screen helpers and the login hand-over.

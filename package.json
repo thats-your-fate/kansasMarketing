@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test:security": "node --test tests/security-hardening.test.mjs",
-    "test:admin-2fa": "node --test tests/admin-totp.test.mjs tests/admin-two-factor.test.mjs"
+    "test:admin-2fa": "node --test tests/admin-totp.test.mjs tests/admin-two-factor.test.mjs tests/admin-auth-http.test.mjs"
   },
   "dependencies": {
     "maplibre-gl": "^6.9.1",

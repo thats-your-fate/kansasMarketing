@@ -8,8 +8,10 @@
  * sign-in challenges, and revokes every session of the account. Two-factor sign-in stays
  * mandatory: the admin then enrolls again with a new owner-issued enrollment code.
  *
- * Run it on the host as root or as the web runtime account (the file keeps its owner and
- * mode 0600). It needs neither the encryption key nor the password and prints no secret.
+ * Run it as the user the web server runs as (fw-ks-runtime in production), never as root:
+ * the state file must stay owned by that user, so the script refuses uid 0. It takes the same
+ * lock as the running server, needs neither the encryption key nor the password and prints
+ * no secret.
  * See docs/admin-two-factor.md.
  */
 import {access} from "node:fs/promises"
@@ -18,6 +20,10 @@ import {STATE_FILE_ENV, resetSecondFactor, stateFilePath} from "../lib/admin-tot
 async function main(argv) {
   if (argv.length !== 2 || argv[0] !== "--username" || !argv[1].trim()) {
     console.error("usage: " + STATE_FILE_ENV + "=<state file> node scripts/admin-totp-reset.mjs --username <admin username>")
+    return 2
+  }
+  if (typeof process.getuid === "function" && process.getuid() === 0) {
+    console.error("Refusing to run as root: run this as the web runtime user, for example\n  runuser -u fw-ks-runtime -- env " + STATE_FILE_ENV + "=<state file> node scripts/admin-totp-reset.mjs --username <admin username>")
     return 2
   }
   const username = argv[1].trim().toLowerCase()

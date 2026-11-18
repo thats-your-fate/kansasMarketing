@@ -4,7 +4,7 @@ import test, {after} from 'node:test';
 import assert from 'node:assert/strict';
 import {createHmac} from 'node:crypto';
 import {execFile} from 'node:child_process';
-import {chmodSync, existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync} from 'node:fs';
+import {chmodSync, existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, utimesSync, writeFileSync} from 'node:fs';
 
 const read = readFileSync;
 import {tmpdir} from 'node:os';
@@ -12,7 +12,7 @@ import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {promisify} from 'node:util';
 import * as OTPAuth from 'otpauth';
-import {begin, sessionAdmin, status, enrollStart, enrollConfirm, verify, replaceStart, replaceConfirm, regenerateRecoveryCodes, disable, TwoFactorFailure, CHALLENGE_SECONDS, SESSION_SECONDS} from '../lib/admin-totp.mjs';
+import {begin, sessionAdmin, signOut, status, enrollStart, enrollConfirm, verify, replaceStart, replaceConfirm, regenerateRecoveryCodes, disable, TwoFactorFailure, CHALLENGE_SECONDS, SESSION_SECONDS} from '../lib/admin-totp.mjs';
 import {readState, resetSecondFactor, withState, writeState} from '../lib/admin-totp-store.mjs';
 import {qrImageSource} from '../lib/admin-two-factor.mjs';
 
@@ -114,11 +114,45 @@ test('sign-in fails closed when the key or the state file is missing, invalid or
   // A damaged state file refuses sign-in and existing sessions instead of starting from scratch.
   const damaged = site();
   const {session} = await enroll(damaged);
-  for (const content of ['{not json', '[]', '{"version":2,"accounts":{},"challenges":{}}']) {
+  const good = readFileSync(damaged.file, 'utf8');
+  const altered = change => { const state = JSON.parse(good); change(state, state.accounts.owner); return JSON.stringify(state); };
+  const junk = 'c'.repeat(64);
+  const malformed = {
+    'not JSON': '{not json', 'an array': '[]', 'another version': '{"version":2,"accounts":{},"challenges":{}}', 'an extra top-level key': altered(state => { state.extra = 1; }),
+    'accounts as a list': '{"version":1,"accounts":[],"challenges":{}}',
+    // A malformed account must never read as "not enrolled", nor a malformed authenticator as "enrolled".
+    'account null': '{"version":1,"accounts":{"owner":null},"challenges":{}}',
+    'account a string': '{"version":1,"accounts":{"owner":"x"},"challenges":{}}',
+    'active true': '{"version":1,"accounts":{"owner":{"active":true}},"challenges":{}}',
+    'active null': altered((state, owner) => { owner.active = null; }),
+    'active without ciphertext': altered((state, owner) => { delete owner.active.ciphertext; }),
+    'active nonce not text': altered((state, owner) => { owner.active.nonce = 5; }),
+    'step not a number': altered((state, owner) => { owner.active.last_used_step = '0'; }),
+    'step negative': altered((state, owner) => { owner.active.last_used_step = -1; }),
+    'unknown account field': altered((state, owner) => { owner.admin = true; }),
+    'recovery codes not a list': altered((state, owner) => { owner.recovery_codes = {}; }),
+    'recovery code a string': altered((state, owner) => { owner.recovery_codes[0] = 'x'; }),
+    'recovery code without hash': altered((state, owner) => { delete owner.recovery_codes[0].hash; }),
+    'recovery code used flag not a time': altered((state, owner) => { owner.recovery_codes[0].used_at = 'no'; }),
+    'cut-off not a number': altered((state, owner) => { owner.sessions_valid_after = '0'; }),
+    'cut-off not finite': good.replace(/"sessions_valid_after":\d+/, '"sessions_valid_after":1e999'),
+    'attempt window junk': altered((state, owner) => { owner.limit = {attempts: 'many'}; }),
+    'challenge null': altered(state => { state.challenges[junk] = null; }),
+    'challenge junk': altered(state => { state.challenges[junk] = {username: 'owner', expires_at: 'never', attempts: 0, enrollment_authorized: false}; }),
+    'challenge authorised by a string': altered(state => { state.challenges[junk] = {username: 'owner', expires_at: 1, attempts: 0, enrollment_authorized: 'yes'}; }),
+    'challenge with extra field': altered(state => { state.challenges[junk] = {username: 'owner', expires_at: 1, attempts: 0, enrollment_authorized: false, session: true}; }),
+    'challenge id not a hash': altered(state => { state.challenges.x = {username: 'owner', expires_at: 1, attempts: 0, enrollment_authorized: false}; }),
+  };
+  assert.match(good, /"sessions_valid_after":\d+/);
+  for (const [name, content] of Object.entries(malformed)) {
     writeFileSync(damaged.file, content);
-    assert.equal((await outcome(begin(damaged.ctx))).code, 'two_factor_unavailable', content);
-    await assert.rejects(sessionAdmin(damaged.ctx, session), error => error instanceof TwoFactorFailure && error.status === 503);
+    assert.equal((await outcome(begin(damaged.ctx))).code, 'two_factor_unavailable', name);
+    await assert.rejects(sessionAdmin(damaged.ctx, session), error => error instanceof TwoFactorFailure && error.status === 503, name);
+    assert.equal((await outcome(status(damaged.ctx, {session}))).status, 503, name);
+    assert.equal(readFileSync(damaged.file, 'utf8'), content, 'a refused file is left as it is: ' + name);
   }
+  writeFileSync(damaged.file, good);
+  assert.ok(await signedIn(damaged, session), 'the untouched file works again');
 });
 
 test('enrollment is closed without the owner code and only a valid authenticator code enables it', async () => {
@@ -454,6 +488,118 @@ test('removing the authenticator signs out everywhere and returns the account to
   for (const token of [session, other]) assert.equal(await sessionAdmin(s.ctx, token), null);
 });
 
+test('a session revoked before the state was lost stays revoked after a new enrollment', async () => {
+  const s = site();
+  const {secret, session} = await enroll(s);
+  s.advance(30);
+  assert.equal((await post(s, disable, {session}, {password: PASSWORD, code: codeAt(secret, s.nowMs)})).code, 'ok');
+  assert.equal(await sessionAdmin(s.ctx, session), null);
+  // The revocation cut-off lived in the state file; lose it.
+  rmSync(s.file);
+  const again = await enroll(s);
+  assert.ok(await signedIn(s, again.session));
+  assert.equal(await sessionAdmin(s.ctx, session), null, 'no cookie issued before the authenticator became active is a session');
+  assert.ok((await readState(s.file)).accounts.owner.sessions_valid_after > s.nowMs);
+  // The same holds for a still-unexpired cookie of an account whose state simply vanished.
+  const other = site();
+  const first = await enroll(other);
+  rmSync(other.file);
+  assert.equal(await sessionAdmin(other.ctx, first.session), null);
+  other.advance(1);
+  const second = await enroll(other);
+  assert.equal(await sessionAdmin(other.ctx, first.session), null);
+  assert.ok(await signedIn(other, second.session));
+});
+
+test('signing out revokes the session on the server and drops the pending challenge', async () => {
+  const s = site();
+  const {secret, session} = await enroll(s);
+  const copy = session;
+  const other = await signIn(s, secret);
+  s.advance(30);
+  const challenge = await passwordStep(s, 'verify');
+  const out = await outcome(signOut(s.ctx, {session, challenge}));
+  assert.equal(out.code, 'ok');
+  assert.deepEqual(out.body, {success: true});
+  assert.deepEqual([out.session, out.challenge], [null, null], 'both cookies are cleared');
+  // A copied cookie no longer works; sessions are stateless, so the account's other sessions end too.
+  for (const token of [copy, other]) assert.equal(await sessionAdmin(s.ctx, token), null);
+  assert.equal((await post(s, regenerateRecoveryCodes, {session: copy}, {password: PASSWORD, code: codeAt(secret, s.nowMs)})).code, 'unauthorized');
+  assert.equal((await post(s, verify, {challenge}, {code: codeAt(secret, s.nowMs)})).code, 'challenge_expired');
+  assert.deepEqual(Object.keys((await readState(s.file)).challenges), []);
+  // The authenticator is untouched: the next sign-in works, and a second sign-out of the dead cookie changes nothing.
+  const next = await signIn(s, secret);
+  assert.equal((await outcome(signOut(s.ctx, {session: copy}))).code, 'ok');
+  assert.ok(await signedIn(s, next));
+  // Without any cookie, or with someone else's forged one, sign-out still clears cookies and revokes nothing.
+  assert.deepEqual((await outcome(signOut(s.ctx, {session: 'forged.' + 'A'.repeat(43)}))).session, null);
+  assert.ok(await signedIn(s, next));
+  // If the state cannot be reached the sign-out reports it instead of pretending.
+  writeFileSync(s.file, '{broken');
+  assert.equal((await outcome(signOut(s.ctx, {session: next}))).status, 503);
+});
+
+test('separate processes cannot lose each other\'s updates, and an abandoned lock is recovered', async () => {
+  const s = site();
+  const lock = s.file + '.lock';
+  const store = fileURLToPath(new URL('../lib/admin-totp-store.mjs', import.meta.url));
+  await writeState(s.file, {version: 1, accounts: {counter: {sessions_valid_after: 0}}, challenges: {}});
+  const worker = `
+    const {withState} = await import(process.argv[1]);
+    for (let round = 0; round < 25; round += 1) await withState(process.argv[2], async state => {
+      const seen = state.accounts.counter.sessions_valid_after;
+      await new Promise(resolve => setTimeout(resolve, 1));
+      state.accounts.counter.sessions_valid_after = seen + 1;
+    });`;
+  // Four other processes and this one all increment the same number.
+  await Promise.all([
+    ...Array.from({length: 4}, () => run(process.execPath, ['--input-type=module', '-e', worker, store, s.file])),
+    ...Array.from({length: 25}, () => withState(s.file, state => { state.accounts.counter.sessions_valid_after += 1; })),
+  ]);
+  assert.equal((await readState(s.file)).accounts.counter.sessions_valid_after, 125);
+  assert.deepEqual(readdirSync(join(s.directory, 'state')), ['admin-totp.json'], 'lock released, no temporary files');
+
+  // A lock held by a live process blocks, for a bounded time, then fails closed.
+  writeFileSync(lock, process.pid + '\n');
+  const started = Date.now();
+  await assert.rejects(withState(s.file, state => { state.accounts.counter.sessions_valid_after = -5; }, {lockWaitMs: 300}), error => error.name === 'StateUnavailable' && /locked/.test(error.reason));
+  assert.ok(Date.now() - started >= 280 && Date.now() - started < 3000);
+  assert.ok(existsSync(lock), 'someone else\'s live lock is not removed');
+  // The reset script takes the same lock: it waits for it instead of writing past it.
+  const script = fileURLToPath(new URL('../scripts/admin-totp-reset.mjs', import.meta.url));
+  const reset = run(process.execPath, [script, '--username', 'counter'], {env: {PATH: process.env.PATH, KANSAS_ADMIN_TOTP_STATE_FILE: s.file}});
+  await new Promise(resolve => setTimeout(resolve, 400));
+  assert.equal((await readState(s.file)).accounts.counter.sessions_valid_after, 125, 'the reset is still waiting for the lock');
+  rmSync(lock);
+  await reset;
+  assert.ok((await readState(s.file)).accounts.counter.sessions_valid_after > 125);
+
+  // Abandoned locks: the owner is gone and the lock is a few seconds old, or it is simply very old.
+  const dead = await run(process.execPath, ['-e', 'console.log(process.pid)']);
+  const seconds = ago => new Date(Date.now() - ago * 1000);
+  for (const [owner, age] of [[dead.stdout.trim(), 5], [String(process.pid), 60], ['not a pid', 5]]) {
+    writeFileSync(lock, owner + '\n');
+    utimesSync(lock, seconds(age), seconds(age));
+    await withState(s.file, state => { state.accounts.counter.sessions_valid_after = 1000 + age; }, {lockWaitMs: 300});
+    assert.equal((await readState(s.file)).accounts.counter.sessions_valid_after, 1000 + age, owner + ' ' + age);
+    assert.ok(!existsSync(lock));
+  }
+  // A fresh lock of a dead process is not stolen straight away (its owner may just have started).
+  writeFileSync(lock, dead.stdout.trim() + '\n');
+  await assert.rejects(withState(s.file, () => {}, {lockWaitMs: 100}), error => error.name === 'StateUnavailable');
+  rmSync(lock);
+  // The lock is released when the change throws, and temporary files of a crashed write are swept.
+  await assert.rejects(withState(s.file, () => { throw new Error('boom'); }), /boom/);
+  assert.ok(!existsSync(lock));
+  const stale = join(s.directory, 'state', '.admin-totp-0123456789abcdef.tmp');
+  const recent = join(s.directory, 'state', '.admin-totp-fedcba9876543210.tmp');
+  const unrelated = join(s.directory, 'state', 'keep.tmp');
+  for (const path of [stale, recent, unrelated]) writeFileSync(path, 'x');
+  for (const path of [stale, unrelated]) utimesSync(path, seconds(120), seconds(120));
+  await withState(s.file, state => { state.accounts.counter.sessions_valid_after = 1; });
+  assert.deepEqual(readdirSync(join(s.directory, 'state')).sort(), ['.admin-totp-fedcba9876543210.tmp', 'admin-totp.json', 'keep.tmp']);
+});
+
 test('the owner reset script removes the second factor and revokes sessions without printing secrets', async () => {
   const script = fileURLToPath(new URL('../scripts/admin-totp-reset.mjs', import.meta.url));
   const s = site();
@@ -499,7 +645,7 @@ test('only a second-factor session cookie is a session: pre-2FA, unmarked, chall
   const encode = claims => Buffer.from(JSON.stringify(claims)).toString('base64url');
   const sign = (purpose, payload, key = SESSION_KEY) => createHmac('sha256', key).update('fw_ks_admin:v2:' + purpose + ':' + payload).digest('base64url');
   const expires = Math.floor(s.nowMs / 1000) + 3600;
-  const claims = {username: 'owner', sid: 'a'.repeat(32), issued_at: s.nowMs, expires, second_factor: 'totp', purpose: 'session'};
+  const claims = {username: 'owner', sid: 'a'.repeat(32), issued_at: s.nowMs + 1, expires, second_factor: 'totp', purpose: 'session'};
   const token = (value, purpose = 'session', key) => encode(value) + '.' + sign(purpose, encode(value), key);
   // The test signer matches the real one, so the refusals below are about the claims.
   assert.ok(await signedIn(s, token(claims)));
@@ -542,7 +688,7 @@ test('only a second-factor session cookie is a session: pre-2FA, unmarked, chall
   assert.equal((await post(s, regenerateRecoveryCodes, {session: challenge}, {password: PASSWORD, code: codeAt(secret, s.nowMs)})).code, 'unauthorized');
   assert.equal((await post(s, verify, {challenge: session}, {code: codeAt(secret, s.nowMs)})).code, 'challenge_expired');
   // A correctly signed challenge whose id the server never issued (or already ended) is refused.
-  const unknown = token({username: 'owner', id: 'c'.repeat(64), expires, purpose: 'challenge'}, 'challenge');
+  const unknown = token({username: 'owner', id: 'c'.repeat(64), purpose: 'challenge'}, 'challenge');
   assert.equal((await post(s, verify, {challenge: unknown}, {code: codeAt(secret, s.nowMs)})).code, 'challenge_expired');
 
   // Sessions end after eight hours, and are refused once issued before the revocation cut-off.
@@ -556,8 +702,12 @@ test('only a second-factor session cookie is a session: pre-2FA, unmarked, chall
   assert.equal(await sessionAdmin(s.ctx, session), null);
   assert.equal(await sessionAdmin(s.ctx, token({...claims, issued_at: s.nowMs + 1, expires: Math.floor(s.nowMs / 1000) + 60})) !== null, true);
   // Rotating the account (new session_key from the provisioning script) invalidates everything signed before.
-  late.account.session_key = 'rotated-session-key-'.repeat(3);
-  assert.equal(await sessionAdmin(late.ctx, (await enroll(site())).session), null);
+  const rotated = site();
+  const current = await enroll(rotated);
+  assert.ok(await signedIn(rotated, current.session), 'valid and not expired before the rotation');
+  rotated.account.session_key = 'rotated-session-key-'.repeat(3);
+  assert.equal(await sessionAdmin(rotated.ctx, current.session), null);
+  assert.equal((await post(rotated, regenerateRecoveryCodes, {session: current.session}, {password: PASSWORD, code: current.recoveryCodes[0]})).code, 'unauthorized');
 });
 
 test('a secret cannot be read with another key or under another account', async () => {
@@ -636,25 +786,36 @@ test('concurrent requests cannot spend one code twice', async () => {
 
 test('state changes are serialized, atomic and owner-only', async () => {
   const s = site();
-  await writeState(s.file, {version: 1, accounts: {counter: {value: 0}}, challenges: {}});
+  const counter = async () => (await readState(s.file)).accounts.counter.sessions_valid_after;
+  await writeState(s.file, {version: 1, accounts: {counter: {sessions_valid_after: 0}}, challenges: {}});
   await Promise.all(Array.from({length: 40}, () => withState(s.file, async state => {
-    const seen = state.accounts.counter.value;
+    const seen = state.accounts.counter.sessions_valid_after;
     await new Promise(resolve => setImmediate(resolve));
-    state.accounts.counter.value = seen + 1;
+    state.accounts.counter.sessions_valid_after = seen + 1;
   })));
-  assert.equal((await readState(s.file)).accounts.counter.value, 40, 'read-modify-write happens inside the lock');
-  assert.deepEqual(readdirSync(join(s.directory, 'state')), ['admin-totp.json'], 'no temporary files remain');
+  assert.equal(await counter(), 40, 'read-modify-write happens inside the lock');
+  assert.deepEqual(readdirSync(join(s.directory, 'state')), ['admin-totp.json'], 'no temporary or lock files remain');
   assert.equal(statSync(s.file).mode & 0o777, 0o600);
   assert.equal(statSync(join(s.directory, 'state')).mode & 0o777, 0o700);
 
   // An unexpected error writes nothing and does not block the queue.
-  await assert.rejects(withState(s.file, state => { state.accounts.counter.value = -1; throw new Error('boom'); }), /boom/);
-  assert.equal((await readState(s.file)).accounts.counter.value, 40);
+  await assert.rejects(withState(s.file, state => { state.accounts.counter.sessions_valid_after = 7; throw new Error('boom'); }), /boom/);
+  assert.equal(await counter(), 40);
+  // Only a valid state is ever written.
+  await assert.rejects(withState(s.file, state => { state.accounts.counter.active = true; }), error => error.name === 'StateUnavailable');
+  await assert.rejects(writeState(s.file, {version: 1, accounts: {counter: {surprise: 1}}, challenges: {}}), error => error.name === 'StateUnavailable');
+  assert.equal(await counter(), 40);
   // Refused requests that touch nothing do not rewrite the file.
   const before = statSync(s.file).mtimeMs + ':' + statSync(s.file).ino;
-  assert.equal((await post(s, verify, {}, {code: '123456'})).code, 'challenge_expired');
-  assert.equal((await post(s, disable, {}, {password: PASSWORD, code: '123456'})).code, 'unauthorized');
+  const fresh = site();
+  for (const target of [s, fresh]) {
+    assert.equal((await post(target, verify, {}, {code: '123456'})).code, 'challenge_expired');
+    assert.equal((await post(target, verify, {challenge: 'forged.' + 'A'.repeat(43)}, {code: '123456'})).code, 'challenge_expired');
+    assert.equal((await post(target, disable, {session: 'forged.' + 'A'.repeat(43)}, {password: PASSWORD, code: '123456'})).code, 'unauthorized');
+    assert.equal((await outcome(signOut(target.ctx, {}))).code, 'ok');
+  }
   assert.equal(statSync(s.file).mtimeMs + ':' + statSync(s.file).ino, before);
+  assert.ok(!existsSync(join(fresh.directory, 'state')), 'unsigned requests touch nothing on disk, not even the directory or the lock');
   assert.deepEqual(Object.keys((await readState(s.file)).accounts), ['counter']);
   // Account names are data: a hostile name cannot reach object internals.
   const odd = site();
@@ -674,13 +835,41 @@ test('every admin API route requires the signed-in second-factor session', () =>
   for (const path of [...open, ...challengeStage]) assert.ok(routes.includes(path), path);
   const guarded = routes.filter(path => !open.includes(path) && !challengeStage.includes(path));
   assert.deepEqual(guarded, ['auth/2fa/disable/route.ts', 'auth/2fa/recovery-codes/route.ts', 'auth/2fa/replace/confirm/route.ts', 'auth/2fa/replace/start/route.ts', 'auth/me/route.ts', 'exports/route.ts'], 'a new admin route must be classified here');
-  for (const path of guarded) {
-    const source = read(new URL(path, root), 'utf8');
-    assert.match(source, /import \{[^}]*\bcurrentAdmin\b[^}]*\} from "@\/lib\/admin-auth"/, path);
-    const handlers = [...source.matchAll(/export async function (GET|POST|PUT|PATCH|DELETE)\b/g)];
-    assert.ok(handlers.length > 0, path);
-    assert.match(source, /currentAdmin\(request\)|twoFactorRoute\(request, \w+, currentAdmin\)/, path);
+  // Per handler, with comments removed: every exported method of a private route must run the guard itself.
+  const code = path => read(new URL(path, root), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+  const block = (source, from) => {
+    let index = source.indexOf(')', from);
+    index = source.indexOf('{', index);
+    const start = index;
+    for (let depth = 0; index < source.length; index += 1) {
+      if (source[index] === '{') depth += 1;
+      else if (source[index] === '}' && (depth -= 1) === 0) return source.slice(start, index + 1);
+    }
+    throw new Error('unbalanced function body');
+  };
+  const guardedDirectly = body => /^\{\s*return twoFactorRoute\(request, \w+, currentAdmin\)\s*\}$/.test(body)
+    || /^\{\s*try \{\s*const admin = await currentAdmin\(request\)\s*\n?\s*(if \(!admin \|\| admin\.role !== "superadmin"\) return NextResponse\.json\([^\n]*status: 401|return NextResponse\.json\(admin \? \{ admin \} : \{ error: "Sign in required" \}, \{ status: admin \? 200 : 401)/.test(body);
+  const methods = /export\s+async\s+function\s+(GET|HEAD|POST|PUT|PATCH|DELETE|OPTIONS)\s*\(/g;
+  for (const path of routes) {
+    const source = code(path);
+    // Handlers are only ever declared as `export async function METHOD(`, so the scan below sees all of them.
+    assert.doesNotMatch(source, /export\s+(default|\*|\{|(const|let|var|function)\s+(GET|HEAD|POST|PUT|PATCH|DELETE|OPTIONS)\b)/, path);
+    assert.ok([...source.matchAll(methods)].length > 0, path);
   }
+  for (const path of guarded) {
+    const source = code(path);
+    assert.match(source, /import \{[^}]*\bcurrentAdmin\b[^}]*\} from "@\/lib\/admin-auth"/, path);
+    for (const handler of source.matchAll(methods)) {
+      const body = block(source, handler.index);
+      // A handler may hand over to one local function; then that function must start with the guard.
+      const delegated = body.match(/^\{\s*return (\w+)\(request, (?:true|false)\)\s*\}$/);
+      const local = delegated ? source.search(new RegExp('async function ' + delegated[1] + '\\(')) : -1;
+      assert.ok(delegated ? local >= 0 && guardedDirectly(block(source, local)) : guardedDirectly(body), path + ' ' + handler[1] + ' must call currentAdmin before anything else');
+    }
+  }
+  // The check itself notices an unguarded handler and a guard that is only mentioned in a comment.
+  assert.ok(!guardedDirectly('{ return twoFactorRoute(request, disable) }'));
+  assert.ok(!guardedDirectly(block('export async function GET(request) { /* await currentAdmin(request) */ return run(request) }'.replace(/\/\*[\s\S]*?\*\//g, ''), 0)));
   for (const path of routes.filter(path => path.startsWith('auth/2fa/'))) {
     const source = read(new URL(path, root), 'utf8');
     assert.match(source, /return twoFactorRoute\(request, \w+(, currentAdmin)?\)/, path);

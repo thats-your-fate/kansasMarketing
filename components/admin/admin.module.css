@@ -63,6 +63,11 @@
 .loginForm { display: grid; gap: 16px; }
 .loginForm label { display: grid; gap: 8px; font-size: 12px; font-weight: 700; }
 .loginForm input { min-width: 0; width: 100%; padding: 12px; min-height: 44px; border: 1px solid var(--fwt-line); border-radius: 0; color: var(--fwt-ink); background: white; font: inherit; }
+.loginForm input[type="checkbox"] { width: auto; min-height: 0; padding: 0; }
+.loginForm p, .loginCard div > p { font-size: 13px; color: var(--fwt-muted); line-height: 1.7; margin: 0; }
+.loginForm h2 { font-size: 20px; letter-spacing: -.02em; margin: 0; }
+.loginCard a:focus-visible { outline: 3px solid #b88a30; outline-offset: 3px; }
+.securityCard { width: min(100%, 600px); }
 @media (max-width: 1150px) { .workspace { grid-template-columns: 1fr; } .metrics { gap: 12px; } .content { padding: 28px; } .metric { padding: 18px; } }
 @media (max-width: 760px) {
   .shell { display: block; }

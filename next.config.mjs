@@ -14,6 +14,9 @@ const nextConfig = {
 		return [
             { source: "/:path*", headers: securityHeaders },
 			{ source: "/api/:path*", headers: noIndexFollowHeaders },
+			// Admin sign-in, second-factor and export endpoints: never indexed, never followed.
+			// (Their handlers also send Cache-Control: private, no-store on every response.)
+			{ source: "/api/admin/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
 			{ source: "/app/admin/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
 		]
 	},

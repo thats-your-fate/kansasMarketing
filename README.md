@@ -36,6 +36,11 @@ a secure HttpOnly, SameSite=Strict cookie, expire after eight hours, and are rev
 when credentials are rotated. Login attempts are rate limited. Mutating admin APIs
 require a same-origin request.
 
+Sign-in needs the password **and** an authenticator-app code (TOTP). The password step
+only starts a ten-minute second-factor challenge; a session exists after the code is
+accepted. Setup, environment variables, the state file, recovery and rollout are in
+`docs/admin-two-factor.md`; tests run with `npm run test:admin-2fa`.
+
 Install the backend's `kansas_sync_source.py` helper and
 `future-wells-ks-manual-export.service` user unit before enabling exports. Export
 work runs in its own systemd unit, outside the frontend's memory budget. Build into

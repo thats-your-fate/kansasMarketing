@@ -12,11 +12,14 @@
     "start": "next start -p 3009",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "test:security": "node --test tests/security-hardening.test.mjs"
+    "test:security": "node --test tests/security-hardening.test.mjs",
+    "test:admin-2fa": "node --test tests/admin-totp.test.mjs tests/admin-two-factor.test.mjs"
   },
   "dependencies": {
     "maplibre-gl": "^6.9.1",
     "next": "15.5.28",
+    "otpauth": "9.6.0",
+    "qrcode": "1.5.4",
     "react": "^18",
     "react-dom": "^18"
   },

@@ -5,6 +5,15 @@ import { MarketingLayout } from "@/components/future/MarketingLayout"
 import AdminWorkspace, { type Admin, type ExportStatus } from "./AdminWorkspace"
 import styles from "./admin.module.css"
 import AdminTurnstile from "@/components/future/AdminTurnstile"
+import AdminTwoFactor from "@/components/future/AdminTwoFactor"
+import { twoFactorStep } from "@/lib/admin-two-factor.mjs"
+
+function failureMessage(data: unknown, fallback: string) {
+  const error = (data as { error?: unknown } | null)?.error
+  if (typeof error === "string" && error) return error
+  const message = (error as { message?: unknown } | null)?.message
+  return typeof message === "string" && message ? message : fallback
+}
 
 export default function AdminConsole({ view = "overview" }: { view?: "overview" | "exports" }) {
   const [turnstileToken, setTurnstileToken] = useState("")
@@ -16,6 +25,7 @@ export default function AdminConsole({ view = "overview" }: { view?: "overview" 
   const [status, setStatus] = useState<ExportStatus | null>(null)
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
+  const [secondStep, setSecondStep] = useState<"verify" | "enroll" | null>(null)
 
   const refresh = useCallback(async () => {
     try {
@@ -46,9 +56,12 @@ export default function AdminConsole({ view = "overview" }: { view?: "overview" 
     setBusy(true); setError("")
     try {
       const response = await fetch("/api/admin/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, password, turnstile_token: turnstileToken }) })
-      const data = await response.json()
-      if (!response.ok) throw new Error(data.error)
-      setPassword(""); setAdmin(data.admin)
+      const data = await response.json().catch(() => null)
+      if (!response.ok) throw new Error(failureMessage(data, "Sign-in failed"))
+      // The password is only the first factor: the server opens no session until the authenticator step succeeds.
+      const step = twoFactorStep(data)
+      if (!step) throw new Error("Two-factor sign-in is unavailable. Try again shortly.")
+      setPassword(""); setSecondStep(step)
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Sign-in failed") }
     finally { setTurnstileToken(""); setVerificationAttempt(value => value + 1); setBusy(false) }
   }
@@ -82,6 +95,9 @@ export default function AdminConsole({ view = "overview" }: { view?: "overview" 
       <span className="fwt-eyebrow">Kansas administration</span>
       <h1 id="admin-login-heading">Login</h1>
       {checking ? <p role="status">Checking sign-in…</p> : <>
+        {secondStep ? <AdminTwoFactor initialStep={secondStep} destination={view === "exports" ? "/app/admin/exports" : "/app/admin"}
+          apiBase="/api/admin/auth/2fa/" formClassName={styles.loginForm} loginPath="/app/admin"
+          onRestart={reason => { setSecondStep(null); setError(reason) }} /> : <>
         <p>Sign in to manage Kansas data exports.</p>
         {error && <p role="alert" className={styles.error}>{error}</p>}
         <form className={styles.loginForm} onSubmit={signIn}>
@@ -90,6 +106,7 @@ export default function AdminConsole({ view = "overview" }: { view?: "overview" 
           <AdminTurnstile configUrl="/api/admin/auth/turnstile" onVerify={setTurnstileToken} resetKey={verificationAttempt} />
           <button className="fwt-btn gold" type="submit" disabled={busy || !turnstileToken}>{busy ? "Signing in…" : "Login"}</button>
         </form>
+        </>}
       </>}
     </section>
   </main></MarketingLayout>

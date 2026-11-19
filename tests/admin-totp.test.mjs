@@ -932,3 +932,11 @@ test('shared import refuses wrong account, unknown fields, and a different exist
   await assert.rejects(importSharedAuthenticator(s.ctx, 'owner', {...transfer, credential_id: 'c'.repeat(64)}), error => error.code === 'already_enrolled');
   assert.equal(readFileSync(s.file, 'utf8'), before);
 });
+
+
+test('Rust-exported RFC6238 seed accepts the same six-digit code in Kansas', async () => {
+  const s = site(); s.ctx.sharedProvisioningRequired = true; s.nowMs = 59000;
+  await importSharedAuthenticator(s.ctx,'owner', {schema:'future-wells-seo-shared-totp/1',credential_id:'d'.repeat(64),secret_hex:Buffer.from('12345678901234567890').toString('hex')});
+  const challenge = await passwordStep(s,'verify');
+  assert.equal((await post(s,verify,{challenge},{code:'287082'})).code,'ok');
+});

@@ -9,7 +9,8 @@ import { RecordConversionCta } from "@/components/future/RecordConversionCta"
 import { apiBaseUrl } from "@/app/config"
 import { entityDirectoryPath, isIndexableEntity, parseDirectoryPage } from "@/app/directory-policy.mjs"
 import { hasReportedNumber, productionEvidenceForWell, publicWellRelationshipFacts, sourceDateFacts } from "@/app/entity-facts.mjs"
-import { seoMetadata } from "@/app/seo"
+import { canonicalUrl, seoMetadata } from "@/app/seo"
+import { buildEntityPageJsonLd, buildWellPageJsonLd, serializeJsonLd } from "@/app/structured-data-builders.mjs"
 import { countyMetadata, fieldMetadata, operatorMetadata, unavailableMetadata, wellMetadata } from "@/app/metadata-copy.mjs"
 import { normalizeRecordIdentifier, normalizeSlug, recordPath } from "@/app/url-policy.mjs"
 
@@ -219,6 +220,15 @@ export async function EntityDetailPage({ kind, slug }: { kind: EntityKind; slug:
 	return (
 		<MarketingLayout>
 			<BreadcrumbTrail items={breadcrumbs} />
+			<JsonLdScripts data={buildEntityPageJsonLd({
+				kind,
+				name,
+				description: entityMetadata(kind, name, detail).description,
+				url: canonicalUrl(canonicalPath),
+				siteUrl: canonicalUrl("/"),
+				breadcrumbs: breadcrumbs.map((item) => ({ name: item.name, url: canonicalUrl(item.path) })),
+				wells: wellGroups.flatMap((group) => group.wells).map((card) => ({ name: wellTitle(card), url: canonicalUrl(wellPath(card)) })),
+			})} />
 			<section className="fwt-county-hero">
 				<div className="fwt-container fwt-county-hero-grid">
 					<div>
@@ -375,6 +385,20 @@ export async function WellDetailPage({ api, slug }: { api: string; slug?: string
 	return (
 		<MarketingLayout>
 			<BreadcrumbTrail items={breadcrumbs} />
+			<JsonLdScripts data={buildWellPageJsonLd({
+				name: title,
+				description: wellMetadata(well).description,
+				url: canonicalUrl(canonicalPath),
+				siteUrl: canonicalUrl("/"),
+				breadcrumbs: breadcrumbs.map((item) => ({ name: item.name, url: canonicalUrl(item.path) })),
+				api: well.api_raw || well.api14,
+				kgsKid: well.kgs_kid,
+				kccPermit: well.kcc_permit,
+				latitude: well.source_latitude,
+				longitude: well.source_longitude,
+				county: well.county ? countyLabel(well.county) : null,
+				dateModified: latestEvidenceDate(well),
+			})} />
 			<section className="fwt-well-hero">
 				<div className="fwt-container fwt-well-hero-grid">
 					<div>
@@ -1167,6 +1191,28 @@ export function wellTitle(well: Pick<KansasWellCard, "well_name" | "lease_name" 
 	if (name) return titleCase(name)
 	if (lease) return titleCase(lease)
 	return wellApiLabel(well) || (well.kgs_kid ? `KGS KID ${well.kgs_kid}` : "Kansas well")
+}
+
+function JsonLdScripts({ data }: { data: unknown[] }) {
+	return (
+		<>
+			{data.map((schema, index) => (
+				<script key={index} type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(schema) }} />
+			))}
+		</>
+	)
+}
+
+// Newest dated source evidence for a well; snapshot-observation times are not edits.
+function latestEvidenceDate(well: KansasWellCard) {
+	const dates = [well.latest_filing_date, well.permit_date, well.spud_date, well.completion_date, well.plug_date]
+		.filter((value): value is string => Boolean(value))
+		.map((value) => value.slice(0, 10))
+		.filter((value) => /^\d{4}-\d{2}-\d{2}$/.test(value))
+		.sort()
+	const latest = dates.at(-1) || null
+	const today = new Date().toISOString().slice(0, 10)
+	return latest && latest > today ? today : latest
 }
 
 function wellBreadcrumb(well: KansasWellCard) {

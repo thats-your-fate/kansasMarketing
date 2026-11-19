@@ -16,6 +16,13 @@ export function isIndexableEntity(kind, wellCount) {
 	return count >= MIN_INDEXABLE_ENTITY_WELLS
 }
 
+// Well pages the backend classifies as "thin" (no dates, documents, lease
+// production or active status) are served noindex, follow. A missing tier
+// (older backend, or classification unavailable) keeps the page indexable.
+export function isIndexableWellTier(tier) {
+	return tier !== "thin"
+}
+
 export function entityDirectoryPath(kind, page = 1) {
 	const base = ENTITY_DIRECTORY_PATHS[kind]
 	if (!base) throw new Error(`Unknown Kansas directory kind: ${kind}`)

@@ -7,7 +7,7 @@ import { BreadcrumbTrail } from "@/components/future/BreadcrumbTrail"
 import { MarketingLayout } from "@/components/future/MarketingLayout"
 import { RecordConversionCta } from "@/components/future/RecordConversionCta"
 import { apiBaseUrl } from "@/app/config"
-import { entityDirectoryPath, isIndexableEntity, parseDirectoryPage } from "@/app/directory-policy.mjs"
+import { entityDirectoryPath, isIndexableEntity, isIndexableWellTier, parseDirectoryPage } from "@/app/directory-policy.mjs"
 import { hasReportedNumber, productionEvidenceForWell, publicWellRelationshipFacts, sourceDateFacts } from "@/app/entity-facts.mjs"
 import { canonicalUrl, seoMetadata } from "@/app/seo"
 import { buildEntityPageJsonLd, buildWellPageJsonLd, serializeJsonLd } from "@/app/structured-data-builders.mjs"
@@ -104,6 +104,13 @@ type KansasWellDetail = {
 	documents?: KansasDocument[]
 	well: KansasWellCard
 	related_wells: KansasWellCard[]
+	seo?: KansasWellSeo | null
+}
+
+/** Search tier shared with the well sitemap feed (/api/ks/seo/sitemap-wells). */
+type KansasWellSeo = {
+	tier: "primary" | "secondary" | "thin"
+	lastmod?: string | null
 }
 
 type KansasEntityDirectory = {
@@ -365,6 +372,8 @@ export async function generateWellMetadata(api: string): Promise<Metadata> {
 		title: metadata.title,
 		description: metadata.description,
 		path: wellPath(result.well),
+		noIndex: !isIndexableWellTier(result.seo?.tier),
+		followWhenNoIndex: true,
 	})
 }
 
@@ -397,7 +406,7 @@ export async function WellDetailPage({ api, slug }: { api: string; slug?: string
 				latitude: well.source_latitude,
 				longitude: well.source_longitude,
 				county: well.county ? countyLabel(well.county) : null,
-				dateModified: latestEvidenceDate(well),
+				dateModified: detail.seo?.lastmod || latestEvidenceDate(well),
 			})} />
 			<section className="fwt-well-hero">
 				<div className="fwt-container fwt-well-hero-grid">

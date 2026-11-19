@@ -23,6 +23,10 @@ const nextConfig = {
 	async rewrites() {
 		return [
 			{
+				source: "/sitemap-wells-:page(\\d{1,4}).xml",
+				destination: "/sitemap-wells/:page",
+			},
+			{
 				source: "/api/ks/:path*",
 				destination: `${backendApiUrl}/api/ks/:path*`,
 			},

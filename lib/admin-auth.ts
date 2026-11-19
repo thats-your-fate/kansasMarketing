@@ -41,6 +41,7 @@ async function passwordMatches(password: string, config: Credentials, maxLength 
 export function twoFactorContext(): TwoFactorContext {
   return {
     env: process.env,
+    sharedProvisioningRequired: true,
     now: () => Date.now(),
     account: async () => {
       const config = await credentials()

@@ -12,7 +12,7 @@ import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {promisify} from 'node:util';
 import * as OTPAuth from 'otpauth';
-import {begin, sessionAdmin, signOut, status, enrollStart, enrollConfirm, verify, replaceStart, replaceConfirm, regenerateRecoveryCodes, disable, TwoFactorFailure, CHALLENGE_SECONDS, SESSION_SECONDS} from '../lib/admin-totp.mjs';
+import {importSharedAuthenticator, begin, sessionAdmin, signOut, status, enrollStart, enrollConfirm, verify, replaceStart, replaceConfirm, regenerateRecoveryCodes, disable, TwoFactorFailure, CHALLENGE_SECONDS, SESSION_SECONDS} from '../lib/admin-totp.mjs';
 import {readState, resetSecondFactor, withState, writeState} from '../lib/admin-totp-store.mjs';
 import {qrImageSource} from '../lib/admin-two-factor.mjs';
 
@@ -37,7 +37,7 @@ function site(overrides = {}) {
     env: {KANSAS_ADMIN_TOTP_KEY: KEY, KANSAS_ADMIN_TOTP_ENROLLMENT_CODE: ENROLLMENT, KANSAS_ADMIN_TOTP_STATE_FILE: file, ...overrides},
     advance(seconds) { self.nowMs += seconds * 1000; },
   };
-  self.ctx = {env: self.env, now: () => self.nowMs, account: async () => ({...self.account}), verifyPassword: async password => password === PASSWORD};
+  self.ctx = {sharedProvisioningRequired: false, env: self.env, now: () => self.nowMs, account: async () => ({...self.account}), verifyPassword: async password => password === PASSWORD};
   return self;
 }
 
@@ -184,10 +184,10 @@ test('enrollment is closed without the owner code and only a valid authenticator
     assert.equal(started.code, 'ok');
     const setup = started.body.enrollment;
     assert.match(setup.secret, /^[A-Z2-7]{32}$/, '160-bit secret in base32');
-    assert.equal(setup.issuer, 'Future Wells Kansas');
+    assert.equal(setup.issuer, 'SEO Sites');
     assert.equal(setup.account, 'owner');
-    assert.ok(setup.otpauth_uri.startsWith('otpauth://totp/Future%20Wells%20Kansas:owner?'));
-    for (const part of ['secret=' + setup.secret, 'algorithm=SHA1', 'digits=6', 'period=30', 'issuer=Future%20Wells%20Kansas']) assert.ok(setup.otpauth_uri.includes(part), part);
+    assert.ok(setup.otpauth_uri.startsWith('otpauth://totp/SEO%20Sites:owner?'));
+    for (const part of ['secret=' + setup.secret, 'algorithm=SHA1', 'digits=6', 'period=30', 'issuer=SEO%20Sites']) assert.ok(setup.otpauth_uri.includes(part), part);
     assert.ok(qrImageSource(setup.qr_svg).startsWith('data:image/svg+xml'), 'the shared screen accepts the QR image');
     assert.equal(started.session, undefined);
 
@@ -211,7 +211,7 @@ test('enrollment is closed without the owner code and only a valid authenticator
     assert.equal(new Set(confirmed.body.recovery_codes).size, 10);
     for (const code of confirmed.body.recovery_codes) assert.match(code, /^([A-HJ-NP-Z2-9]{4}-){3}[A-HJ-NP-Z2-9]{4}$/);
     assert.deepEqual(await sessionAdmin(s.ctx, confirmed.session.token), {username: 'owner', role: 'superadmin'});
-    assert.deepEqual((await outcome(status(s.ctx, {session: confirmed.session.token}))).body, {two_factor: {state: 'active', recovery_codes_remaining: 10, replacement_pending: false}});
+    assert.deepEqual((await outcome(status(s.ctx, {session: confirmed.session.token}))).body, {two_factor: {state: 'active', recovery_codes_remaining: 10, replacement_pending: false, shared_authenticator: false, authenticator_label: 'SEO Sites'}});
 
     // At rest: owner-only file, encrypted secret, hashed recovery codes, no temporary files.
     assert.equal(statSync(s.file).mode & 0o777, 0o600);
@@ -888,4 +888,47 @@ test('every admin API route requires the signed-in second-factor session', () =>
   const core = read(new URL('../lib/admin-totp.mjs', import.meta.url), 'utf8') + read(new URL('../lib/admin-totp-store.mjs', import.meta.url), 'utf8');
   assert.doesNotMatch(core, /console\.(log|info|debug|warn)\(/);
   assert.deepEqual([...core.matchAll(/console\.error\(([^)]*)\)/g)].map(match => match[1]), ['"admin two-factor storage error: " + error.reason']);
+});
+
+
+test('shared provisioning reuses the same code with separate encryption and replay state', async () => {
+  const first = site(); const second = site({KANSAS_ADMIN_TOTP_KEY: '29'.repeat(32)});
+  first.ctx.sharedProvisioningRequired = second.ctx.sharedProvisioningRequired = true;
+  const raw = Buffer.from('12345678901234567890');
+  const transfer = {schema: 'future-wells-seo-shared-totp/1', credential_id: 'a'.repeat(64), secret_hex: raw.toString('hex')};
+  const secret = new OTPAuth.Secret({buffer: Uint8Array.from(raw).buffer}).base32;
+  assert.equal((await outcome(begin(first.ctx))).code, 'shared_authenticator_required');
+  assert.equal((await importSharedAuthenticator(first.ctx, 'owner', transfer)).changed, true);
+  assert.equal((await importSharedAuthenticator(second.ctx, 'owner', transfer)).changed, true);
+  const a = (await readState(first.file)).accounts.owner.active;
+  const b = (await readState(second.file)).accounts.owner.active;
+  assert.notEqual(a.ciphertext, b.ciphertext); assert.notEqual(a.nonce, b.nonce);
+  assert.ok(!readFileSync(first.file, 'utf8').includes(transfer.secret_hex));
+  const code = codeAt(secret, first.nowMs);
+  for (const s of [first, second]) {
+    const challenge = await passwordStep(s, 'verify');
+    const verified = await post(s, verify, {challenge}, {code});
+    assert.equal(verified.code, 'ok');
+    const session = verified.session.token;
+    for (const action of [replaceStart, replaceConfirm, disable])
+      assert.equal((await post(s, action, {session}, {password: PASSWORD, code})).code, 'shared_authenticator_managed');
+    assert.equal((await status(s.ctx, {session})).body.two_factor.shared_authenticator, true);
+    const repeat = await passwordStep(s, 'verify');
+    assert.equal((await post(s, verify, {challenge: repeat}, {code})).code, 'code_already_used');
+  }
+  assert.equal((await importSharedAuthenticator(first.ctx, 'owner', transfer)).changed, false);
+  const challenge = await passwordStep(first, 'verify');
+  assert.equal((await post(first, verify, {challenge}, {code})).code, 'code_already_used');
+});
+
+test('shared import refuses wrong account, unknown fields, and a different existing factor', async () => {
+  const s = site(); s.ctx.sharedProvisioningRequired = true;
+  const transfer = {schema: 'future-wells-seo-shared-totp/1', credential_id: 'b'.repeat(64), secret_hex: '42'.repeat(20)};
+  await assert.rejects(importSharedAuthenticator(s.ctx, 'somebody-else', transfer), error => error.code === 'unauthorized');
+  await assert.rejects(importSharedAuthenticator(s.ctx, 'owner', {...transfer, extra: true}));
+  await importSharedAuthenticator(s.ctx, 'owner', transfer);
+  const before = readFileSync(s.file, 'utf8');
+  await assert.rejects(importSharedAuthenticator(s.ctx, 'owner', {...transfer, secret_hex: '63'.repeat(20)}), error => error.code === 'already_enrolled');
+  await assert.rejects(importSharedAuthenticator(s.ctx, 'owner', {...transfer, credential_id: 'c'.repeat(64)}), error => error.code === 'already_enrolled');
+  assert.equal(readFileSync(s.file, 'utf8'), before);
 });

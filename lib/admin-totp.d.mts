@@ -1,5 +1,7 @@
 export type TwoFactorAccount = {username: string; role: string; session_key: string}
 export type TwoFactorContext = {
+  /** Production requires private owner provisioning; false is used only by legacy primitive fixtures. */
+  sharedProvisioningRequired?: boolean
   /** Environment holding KANSAS_ADMIN_TOTP_KEY, KANSAS_ADMIN_TOTP_ENROLLMENT_CODE and KANSAS_ADMIN_TOTP_STATE_FILE. */
   env: Record<string, string | undefined>
   /** Current Unix time in milliseconds. */
@@ -38,3 +40,5 @@ export function replaceStart(ctx: TwoFactorContext, request: TwoFactorRequest): 
 export function replaceConfirm(ctx: TwoFactorContext, request: TwoFactorRequest): Promise<TwoFactorResult>
 export function regenerateRecoveryCodes(ctx: TwoFactorContext, request: TwoFactorRequest): Promise<TwoFactorResult>
 export function disable(ctx: TwoFactorContext, request: TwoFactorRequest): Promise<TwoFactorResult>
+
+export function importSharedAuthenticator(ctx: TwoFactorContext, username: string, transfer: {schema: string; credential_id: string; secret_hex: string}): Promise<{shared_authenticator: true; label: string; changed: boolean; secrets_printed: false}>

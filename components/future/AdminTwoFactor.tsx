@@ -125,7 +125,7 @@ export default function AdminTwoFactor({initialStep, destination, onRestart, api
         window.location.assign(destination)
       })}>
         <p>Password accepted. Confirm it is you with your authenticator app.</p>
-        {useRecovery ? <CodeField id="admin-recovery-code" label="Recovery code" hint="Each recovery code works once." recovery /> : <CodeField id="admin-totp-code" label="Authenticator code" hint="The 6-digit code for this site in your authenticator app." />}
+        {useRecovery ? <CodeField id="admin-recovery-code" label="Recovery code" hint="Each recovery code works once." recovery /> : <CodeField id="admin-totp-code" label="Authenticator code" hint="The 6-digit code from your SEO Sites entry." />}
         {error ? <p role="alert">{error}</p> : null}
         <button className={buttonClass} disabled={busy} type="submit">{busy ? "Checking…" : "Verify"}</button>
         <button className="fwt-btn light" type="button" onClick={() => {setError(""); setUseRecovery(value => !value)}}>{useRecovery ? "Use authenticator code" : "Use a recovery code"}</button>
@@ -165,6 +165,7 @@ export default function AdminTwoFactor({initialStep, destination, onRestart, api
 /** Authenticator management for a signed-in admin. Every change asks for password and code again. */
 export function AdminSecuritySettings({apiBase = defaultApiBase, formClassName: formClass = defaultFormClass, loginPath = "/login"}: SiteOptions = {}) {
   const [remaining, setRemaining] = useState<number | null>(null)
+  const [shared, setShared] = useState(false)
   const [setup, setSetup] = useState<Setup | null>(null)
   const [recoveryCodes, setRecoveryCodes] = useState<string[] | null>(null)
   const [notice, setNotice] = useState("")
@@ -175,6 +176,7 @@ export function AdminSecuritySettings({apiBase = defaultApiBase, formClassName: 
     try {
       const data = await call("status", undefined, apiBase)
       setRemaining(data?.two_factor?.recovery_codes_remaining ?? null)
+      setShared(data?.two_factor?.shared_authenticator === true)
     } catch (failure) {
       if (failure instanceof TwoFactorError && mustRestart(failure.code)) window.location.assign(loginPath)
     }
@@ -220,7 +222,9 @@ export function AdminSecuritySettings({apiBase = defaultApiBase, formClassName: 
       {notice ? <p role="status">{notice}</p> : null}
       {error ? <p role="alert">{error}</p> : null}
 
-      {setup ? (
+      {shared ? (
+        <p>Your <strong>SEO Sites</strong> authenticator is shared across the SEO admin sites. Ask the owner to coordinate a phone change or removal across the sites.</p>
+      ) : setup ? (
         <form className={formClass} onSubmit={event => run("confirm", event, async form => {
           const data = await call("replace/confirm", {code: String(form.get("code") || "")}, apiBase)
           setSetup(null)
@@ -249,12 +253,12 @@ export function AdminSecuritySettings({apiBase = defaultApiBase, formClassName: 
         setRecoveryCodes(data.recovery_codes)
       })}>
         <h2>New recovery codes</h2>
-        <p>Issues ten new single-use codes. All earlier recovery codes stop working.</p>
+        <p>Issues ten new single-use codes for this site. All earlier recovery codes for this site stop working.</p>
         {reauthFields("admin-codes")}
         <button className={buttonClass} disabled={busy !== ""} type="submit">{busy === "codes" ? "Checking…" : "Generate new recovery codes"}</button>
       </form>
 
-      <form className={formClass} onSubmit={event => run("disable", event, async form => {
+      {!shared ? <form className={formClass} onSubmit={event => run("disable", event, async form => {
         if (!window.confirm("Remove the authenticator from this account? You will be signed out and will need a new enrollment code from the site owner to sign in again.")) return
         await call("disable", credentials(form), apiBase)
         window.location.assign(loginPath)
@@ -263,7 +267,7 @@ export function AdminSecuritySettings({apiBase = defaultApiBase, formClassName: 
         <p>Two-factor sign-in stays mandatory: removing the authenticator signs this account out everywhere, and the next sign-in needs a new enrollment code from the site owner.</p>
         {reauthFields("admin-disable")}
         <button className="fwt-btn light" disabled={busy !== ""} type="submit">{busy === "disable" ? "Checking…" : "Remove authenticator"}</button>
-      </form>
+      </form> : null}
     </div>
   )
 }

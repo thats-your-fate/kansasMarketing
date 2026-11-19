@@ -224,3 +224,39 @@ server, CAPTCHA provider stubbed): origin and `Sec-Fetch-Site` refusals, body-si
 cookie attributes on the password step, verification and logout, and the 429 on
 reauthentication.
 `tests/admin-two-factor.test.mjs` covers the shared screen helpers and the login hand-over.
+
+## Shared SEO Sites entry (2026-11-19)
+
+Use the administrator's already confirmed WV Authenticator entry. Its display
+name is **SEO Sites**. Do not create another entry or QR code for this app.
+The production password step requires private owner provisioning and cannot
+complete an independent first enrollment. Password, CAPTCHA, verified sessions,
+origin rules, rate limits and each app's encryption key stay in force.
+
+The bounded native owner import accepts the private JSON protocol
+`future-wells-seo-shared-totp/1` from stdin. It explicitly maps an existing
+administrator, re-encrypts the same 20-byte seed with this app's key and account
+AAD, and refuses a different active factor. Repeating an import preserves its
+replay counter and recovery codes; a new import revokes this target's old
+sessions/challenges and clears old recovery codes. Replay is per account/app,
+so the current code works once on each app. Different administrators keep
+separate shared seeds. Generate and save recovery codes separately on each app.
+
+Browser replacement/removal of a shared factor is refused. The owner coordinates
+replacement or lost-phone revocation across all mapped accounts using the
+existing owner recovery commands. Agents must never read/export the real seed,
+run a privileged owner controller, or put a capsule/key in arguments, Git, chat,
+files or logs. Native import must run under the existing non-root runtime in
+its reviewed namespace/environment, with private pipes and redacted diagnostics.
+
+Schema uses the existing committed MFA migration, with the documented owner
+numbered-migration step where applicable. No new schema or shared global
+key is introduced by this change. Source tests use disposable native PostgreSQL
+or temporary Kansas state files with synthetic credentials only. A commit or
+passing local test is not a live deployment receipt. See futureWellsOps
+`docs/ops/seo-admin-shared-authenticator.md` for the rollout matrix and owner gates.
+
+Kansas entry point: `node scripts/admin-totp-shared.mjs --import`, request
+`{username, transfer}`. The protected credentials file binds the username and
+role; the encrypted state file remains owned by fw-ks-runtime and uses its
+existing cross-process lock. The new shared credential ID is non-secret metadata.

@@ -26,7 +26,7 @@ test("eligible sitemap URLs align with finite public inventory", () => {
 	assert.equal(new Set(urls).size, urls.length)
 })
 
-test("expanded sitemap includes backend directory detail and pagination URLs", async () => {
+test("expanded sitemap includes backend directory detail URLs but no pagination URLs", async () => {
 	const urls = await expandedEligibleSitemapUrls({
 		origin: "https://futurewellskansas.com",
 		guidePaths,
@@ -50,7 +50,7 @@ test("expanded sitemap includes backend directory detail and pagination URLs", a
 	assert(urls.includes("https://futurewellskansas.com/counties/st-john-and-south-county"))
 	assert(urls.includes("https://futurewellskansas.com/operators/acme-oil-llc"))
 	assert(urls.includes("https://futurewellskansas.com/fields/unnamed"))
-	assert(urls.includes("https://futurewellskansas.com/counties?page=2"))
+	assert(!urls.some((url) => new URL(url).search))
 	assert.equal(new Set(urls).size, urls.length)
 })
 
@@ -81,8 +81,39 @@ test("expanded sitemap prefers compact backend sitemap directory source", async 
 	})
 	assert(urls.includes("https://futurewellskansas.com/counties/barton-county"))
 	assert(!urls.includes("https://futurewellskansas.com/counties/barton"))
-	assert(urls.includes("https://futurewellskansas.com/counties?page=2"))
-	assert(urls.includes("https://futurewellskansas.com/counties?page=3"))
+	assert(!urls.some((url) => new URL(url).search))
+})
+
+test("sitemap skips single-well operators and fields but keeps counties", async () => {
+	const urls = await expandedEligibleSitemapUrls({
+		origin: "https://futurewellskansas.com",
+		apiBaseUrl: "http://127.0.0.1:4008",
+		fetchImpl: async () => ({
+			ok: true,
+			async json() {
+				return {
+					data: {
+						directories: [
+							{ kind: "counties", path: "/counties", total_pages: 1, items: [{ display_name: "Greeley County", well_count: 1 }] },
+							{ kind: "operators", path: "/operators", total_pages: 1, items: [
+								{ display_name: "Solo Oil", well_count: 1 },
+								{ display_name: "Pair Oil", well_count: 2 },
+							] },
+							{ kind: "fields", path: "/fields", total_pages: 1, items: [
+								{ display_name: "Wildcat", well_count: 1 },
+								{ display_name: "Big Field", well_count: 40 },
+							] },
+						],
+					},
+				}
+			},
+		}),
+	})
+	assert(urls.includes("https://futurewellskansas.com/counties/greeley-county"))
+	assert(urls.includes("https://futurewellskansas.com/operators/pair-oil"))
+	assert(urls.includes("https://futurewellskansas.com/fields/big-field"))
+	assert(!urls.includes("https://futurewellskansas.com/operators/solo-oil"))
+	assert(!urls.includes("https://futurewellskansas.com/fields/wildcat"))
 })
 
 test("directory sitemap expansion falls back cleanly when the backend lacks routes", async () => {
@@ -112,7 +143,7 @@ test("sitemap XML is parseable and escapes URL text", () => {
 test("duplicate, query, non-https production, and oversize outputs fail", () => {
 	assert.throws(() => assertSitemapUrlSet(["https://futurewellskansas.com/a", "https://futurewellskansas.com/a"]), /Duplicate/)
 	assert.throws(() => assertSitemapUrlSet(["https://futurewellskansas.com/a?utm_source=x"]), /query/)
-	assert.doesNotThrow(() => assertSitemapUrlSet(["https://futurewellskansas.com/counties?page=2"]))
+	assert.throws(() => assertSitemapUrlSet(["https://futurewellskansas.com/counties?page=2"]), /query/)
 	assert.throws(() => assertSitemapUrlSet(["https://futurewellskansas.com/counties?page=1"]), /query/)
 	assert.throws(() => assertSitemapUrlSet(["http://futurewellskansas.com/a"]), /absolute HTTPS/)
 	assert.throws(

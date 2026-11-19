@@ -19,16 +19,18 @@ type SeoMetadataInput = {
 	path: string
 	type?: "website" | "article"
 	noIndex?: boolean
+	// Keep following links when this page is noindexed (thin entity pages).
+	followWhenNoIndex?: boolean
 }
 
-export function seoMetadata({ title, description, path, type = "website", noIndex = false }: SeoMetadataInput): Metadata {
+export function seoMetadata({ title, description, path, type = "website", noIndex = false, followWhenNoIndex = false }: SeoMetadataInput): Metadata {
 	const canonical = canonicalUrl(path)
 	const shouldIndex = indexingEnabled && !noIndex
 	return {
 		title: { absolute: title },
 		description,
 		alternates: { canonical },
-		robots: shouldIndex ? { index: true, follow: true } : { index: false, follow: false },
+		robots: shouldIndex ? { index: true, follow: true } : { index: false, follow: indexingEnabled && followWhenNoIndex },
 		openGraph: {
 			title,
 			description,

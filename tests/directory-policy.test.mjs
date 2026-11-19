@@ -41,3 +41,13 @@ test("fixture pagination covers every record exactly once", () => {
 	assert.equal(new Set(collected).size, items.length)
 	assert.deepEqual(collected.toSorted(), items.map((item) => item.id).toSorted())
 })
+
+test("single-well operators and fields are not indexable; counties always are", async () => {
+	const { isIndexableEntity } = await import("../app/directory-policy.mjs")
+	assert.equal(isIndexableEntity("operators", 1), false)
+	assert.equal(isIndexableEntity("fields", 1), false)
+	assert.equal(isIndexableEntity("operators", 2), true)
+	assert.equal(isIndexableEntity("fields", 300), true)
+	assert.equal(isIndexableEntity("counties", 1), true)
+	assert.equal(isIndexableEntity("operators", undefined), true)
+})

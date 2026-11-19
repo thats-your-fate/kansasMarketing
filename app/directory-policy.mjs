@@ -4,6 +4,18 @@ export const ENTITY_DIRECTORY_PATHS = {
 	fields: "/fields",
 }
 
+// Operators and fields backed by a single KGS well render near-identical
+// boilerplate pages. They stay reachable (noindex, follow) but are kept out
+// of the sitemap and the search index. Counties are always indexable.
+export const MIN_INDEXABLE_ENTITY_WELLS = 2
+
+export function isIndexableEntity(kind, wellCount) {
+	if (kind === "counties") return true
+	const count = Number(wellCount)
+	if (!Number.isFinite(count)) return true
+	return count >= MIN_INDEXABLE_ENTITY_WELLS
+}
+
 export function entityDirectoryPath(kind, page = 1) {
 	const base = ENTITY_DIRECTORY_PATHS[kind]
 	if (!base) throw new Error(`Unknown Kansas directory kind: ${kind}`)

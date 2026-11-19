@@ -7,7 +7,7 @@ import { BreadcrumbTrail } from "@/components/future/BreadcrumbTrail"
 import { MarketingLayout } from "@/components/future/MarketingLayout"
 import { RecordConversionCta } from "@/components/future/RecordConversionCta"
 import { apiBaseUrl } from "@/app/config"
-import { entityDirectoryPath, parseDirectoryPage } from "@/app/directory-policy.mjs"
+import { entityDirectoryPath, isIndexableEntity, parseDirectoryPage } from "@/app/directory-policy.mjs"
 import { hasReportedNumber, productionEvidenceForWell, publicWellRelationshipFacts, sourceDateFacts } from "@/app/entity-facts.mjs"
 import { seoMetadata } from "@/app/seo"
 import { countyMetadata, fieldMetadata, operatorMetadata, unavailableMetadata, wellMetadata } from "@/app/metadata-copy.mjs"
@@ -187,6 +187,8 @@ export async function generateEntityMetadata(kind: EntityKind, slug: string): Pr
 		title: metadata.title,
 		description: metadata.description,
 		path: entityPath(kind, result.display_name),
+		noIndex: !isIndexableEntity(kind, result.well_count),
+		followWhenNoIndex: true,
 	})
 }
 

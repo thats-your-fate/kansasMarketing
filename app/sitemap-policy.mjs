@@ -1,3 +1,4 @@
+import { isIndexableEntity } from "./directory-policy.mjs"
 import { buildCanonicalUrl, normalizeSlug } from "./url-policy.mjs"
 
 export const MAX_SITEMAP_URLS = 50000
@@ -89,7 +90,7 @@ export function assertSitemapUrlSet(urls) {
 		if (parsed.protocol !== "https:" && parsed.hostname !== "localhost" && parsed.hostname !== "127.0.0.1") {
 			throw new Error(`Sitemap URL must be absolute HTTPS outside local development: ${url}`)
 		}
-		if (parsed.search && !allowedSitemapQuery(parsed)) {
+		if (parsed.search) {
 			throw new Error(`Sitemap URL must not include noncanonical query parameters: ${url}`)
 		}
 	}
@@ -115,21 +116,15 @@ function directorySitemapPaths(directory) {
 	if (!directory || typeof directory !== "object") return []
 	const family = dynamicDirectoryFamilies.find((item) => item.kind === directory.kind || item.path === directory.path)
 	if (!family) return []
-	const totalPages = boundedTotalPages(directory.total_pages)
-	return [
-		...entityDetailPaths(family.path, Array.isArray(directory.items) ? directory.items : []),
-		...Array.from({ length: Math.max(totalPages - 1, 0) }, (_, index) => `${family.path}?page=${index + 2}`),
-	]
+	return entityDetailPaths(family.path, Array.isArray(directory.items) ? directory.items : [])
 }
 
 async function dynamicDirectoryFamilyPaths({ apiBaseUrl, fetchImpl, kind, path }) {
 	const firstPage = await fetchDirectoryPage({ apiBaseUrl, fetchImpl, kind, page: 1 })
 	if (!firstPage) return []
 	const totalPages = boundedTotalPages(firstPage.total_pages)
-	const paths = [
-		...entityDetailPaths(path, firstPage.items),
-		...Array.from({ length: Math.max(totalPages - 1, 0) }, (_, index) => `${path}?page=${index + 2}`),
-	]
+	// Paginated directory pages are discovered through on-page links, never the sitemap.
+	const paths = entityDetailPaths(path, firstPage.items)
 	const pages = Array.from({ length: Math.max(totalPages - 1, 0) }, (_, index) => index + 2)
 	for (let index = 0; index < pages.length; index += SITEMAP_DIRECTORY_FETCH_CONCURRENCY) {
 		const batch = pages.slice(index, index + SITEMAP_DIRECTORY_FETCH_CONCURRENCY)
@@ -163,6 +158,7 @@ async function fetchDirectoryPage({ apiBaseUrl, fetchImpl, kind, page }) {
 function entityDetailPaths(prefix, items) {
 	const family = dynamicDirectoryFamilies.find((item) => item.path === prefix)
 	return items
+		.filter((item) => isIndexableEntity(family?.kind, item && typeof item === "object" ? item.well_count : undefined))
 		.map((item) => {
 			const source = item && typeof item === "object" ? item.display_name || item.key : ""
 			const slug = normalizeSlug(canonicalDirectoryDisplayName(family?.kind, source))
@@ -201,13 +197,6 @@ function dedupePaths(paths) {
 	})
 }
 
-function allowedSitemapQuery(url) {
-	const params = url.searchParams
-	if (Array.from(params.keys()).some((key) => key !== "page")) return false
-	const page = Number(params.get("page"))
-	if (!Number.isInteger(page) || page < 2) return false
-	return dynamicDirectoryFamilies.some((family) => url.pathname === family.path)
-}
 
 function escapeXml(value) {
 	return String(value)

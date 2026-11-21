@@ -2194,3 +2194,29 @@ body {
 @media (max-width: 480px) {
  .fwt-production-stats { grid-template-columns: 1fr; }
 }
+
+/* Approved AI well summaries (well page panel, well cards, Recently active wells). */
+.fwt-ai-summary p {
+  font-size: 1.02rem;
+  line-height: 1.6;
+}
+.fwt-ai-summary .fwt-ai-summary-note {
+  font-size: 0.82rem;
+  opacity: 0.7;
+  margin-top: 0.5rem;
+}
+.fwt-card-summary {
+  margin: 0.45rem 0 0;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  opacity: 0.85;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.fwt-recent-summary {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}

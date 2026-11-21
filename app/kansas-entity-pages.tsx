@@ -34,6 +34,7 @@ export type KansasWellCard = {
 	id: string
 	api14: string | null
 	api_raw: string | null
+	ai_summary?: string | null
 	kgs_kid: string | null
 	kcc_permit: string | null
 	well_name: string | null
@@ -254,6 +255,7 @@ export async function EntityDetailPage({ kind, slug }: { kind: EntityKind; slug:
 			<section className="fwt-section">
 				<div className="fwt-container fwt-county-layout">
 					<main className="fwt-county-main">
+						<RecentlyActiveWells wells={wellGroups.flatMap((group) => group.wells)} />
 						<Panel eyebrow="Full-scope metrics" title={`${configs[kind].singular} key metrics`}>
 							<DetailGrid rows={[
 								["User question answered", entityQuestion(kind)],
@@ -434,6 +436,16 @@ export async function WellDetailPage({ api, slug }: { api: string; slug?: string
 			<section className="fwt-section">
 				<div className="fwt-container fwt-well-layout">
 					<main className="fwt-well-main">
+						{well.ai_summary ? (
+							<section className="fwt-copy fwt-well-panel fwt-ai-summary">
+								<span className="fwt-eyebrow">Summary</span>
+								<h2>Recent activity at a glance</h2>
+								<p>{well.ai_summary}</p>
+								<p className="fwt-ai-summary-note">
+									Written automatically from the public KCC/KGS records shown on this page. Check the filings below for the full details.
+								</p>
+							</section>
+						) : null}
 						<Panel eyebrow="Source documents" title="Imported public filings" variant="well">
                             {detail.documents?.length ? <div className="fwt-county-well-list">{detail.documents.map(doc => <article key={doc.id}>
                                 <strong>{doc.title}</strong>
@@ -796,10 +808,46 @@ function WellList({ wells, emptyText = "No representative well cards were return
                         {well.latest_filing_date ? <span>Latest imported filing {dateLabel(well.latest_filing_date)}</span> : null}
 						{dateLabel(primaryActivityDate(well)) ? <span>Activity date {dateLabel(primaryActivityDate(well))}</span> : null}
 					</div>
+					{well.ai_summary ? <p className="fwt-card-summary">{well.ai_summary}</p> : null}
 					<a href={wellPath(well)}>View record</a>
 				</article>
 			))}
 		</div>
+	)
+}
+
+function RecentlyActiveWells({ wells }: { wells: KansasWellCard[] }) {
+	const seen = new Set<string>()
+	const active = wells
+		.filter((w) => {
+			if (!w.ai_summary || seen.has(w.id)) return false
+			seen.add(w.id)
+			return true
+		})
+		.slice(0, 6)
+	if (active.length === 0) return null
+	return (
+		<section className="fwt-copy fwt-county-panel fwt-recently-active">
+			<div className="fwt-section-header compact">
+				<div>
+					<span className="fwt-eyebrow">Recently active</span>
+					<h2>Recently active wells</h2>
+				</div>
+				<p>Short summaries written automatically from the public KCC/KGS records on each well page.</p>
+			</div>
+			<div className="fwt-county-well-list">
+				{active.map((well) => (
+					<article key={well.id}>
+						<div>
+							<strong><a href={wellPath(well)}>{wellTitle(well)}</a></strong>
+							<p>{[meaningfulOperator(well.operator), well.county ? countyLabel(well.county) : null, meaningfulField(well.field_name)].filter(Boolean).join(" - ") || "Kansas public well record"}</p>
+							<p className="fwt-recent-summary">{well.ai_summary}</p>
+						</div>
+						<a href={wellPath(well)}>View record</a>
+					</article>
+				))}
+			</div>
+		</section>
 	)
 }
 

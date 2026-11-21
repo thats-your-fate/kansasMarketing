@@ -49,6 +49,7 @@ export default function AdminWorkspace({ admin, status, view, busy, error, onExp
       <nav aria-label="Kansas administration" className={styles.navigation}>
         <Link href="/app/admin" aria-current={view === "overview" ? "page" : undefined}>Overview</Link>
         <Link href="/app/admin/exports" aria-current={view === "exports" ? "page" : undefined}>State exports</Link>
+        <a href="/api/admin/ai-summaries/app">AI Summaries</a>
         <Link href="/app/admin/security">Sign-in security</Link>
       </nav>
       <p className={styles.navLabel}>Kansas public site</p>

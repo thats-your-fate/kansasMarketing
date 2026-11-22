@@ -260,3 +260,18 @@ Kansas entry point: `node scripts/admin-totp-shared.mjs --import`, request
 `{username, transfer}`. The protected credentials file binds the username and
 role; the encrypted state file remains owned by fw-ks-runtime and uses its
 existing cross-process lock. The new shared credential ID is non-secret metadata.
+
+## Additional administrators
+
+The protected credentials file keeps its legacy primary account unchanged and
+may include an `additional_accounts` array with up to 15 further administrators.
+Each entry has its own username, role, scrypt salt/hash and distinct session key.
+The owner may copy an existing password hash and salt internally when explicitly
+requested; never copy a session key or the source account's authenticator state.
+Duplicate usernames or signing keys fail closed. Credentials remain outside Git.
+
+Login selects the intended account after CAPTCHA and password validation. Cookie
+username claims are untrusted routing hints; the existing MFA core verifies the
+selected account's HMAC, factor, replay state and session revocation. Provision
+each new administrator's own shared SEO Sites factor privately before sign-in.
+No new account receives password-only access or a QR from Kansas.

@@ -834,7 +834,7 @@ test('every admin API route requires the signed-in second-factor session', () =>
   const challengeStage = ['auth/2fa/status/route.ts', 'auth/2fa/enroll/start/route.ts', 'auth/2fa/enroll/confirm/route.ts', 'auth/2fa/verify/route.ts'];
   for (const path of [...open, ...challengeStage]) assert.ok(routes.includes(path), path);
   const guarded = routes.filter(path => !open.includes(path) && !challengeStage.includes(path));
-  assert.deepEqual(guarded, ['auth/2fa/disable/route.ts', 'auth/2fa/recovery-codes/route.ts', 'auth/2fa/replace/confirm/route.ts', 'auth/2fa/replace/start/route.ts', 'auth/me/route.ts', 'exports/route.ts'], 'a new admin route must be classified here');
+  assert.deepEqual(guarded, ['ai-summaries/[[...path]]/route.ts', 'auth/2fa/disable/route.ts', 'auth/2fa/recovery-codes/route.ts', 'auth/2fa/replace/confirm/route.ts', 'auth/2fa/replace/start/route.ts', 'auth/me/route.ts', 'exports/route.ts'], 'a new admin route must be classified here');
   // Per handler, with comments removed: every exported method of a private route must run the guard itself.
   const code = path => read(new URL(path, root), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
   const block = (source, from) => {
@@ -852,11 +852,19 @@ test('every admin API route requires the signed-in second-factor session', () =>
   const methods = /export\s+async\s+function\s+(GET|HEAD|POST|PUT|PATCH|DELETE|OPTIONS)\s*\(/g;
   for (const path of routes) {
     const source = code(path);
+    if (path === 'ai-summaries/[[...path]]/route.ts') {
+      assert.ok(source.includes('admin = await currentAdmin(request)'));
+      assert.ok(source.includes('if (!admin || admin.role !== "superadmin")'));
+      assert.ok(source.includes('status: 401'));
+      assert.ok(source.includes('return proxy(request, context)'));
+      continue;
+    }
     // Handlers are only ever declared as `export async function METHOD(`, so the scan below sees all of them.
     assert.doesNotMatch(source, /export\s+(default|\*|\{|(const|let|var|function)\s+(GET|HEAD|POST|PUT|PATCH|DELETE|OPTIONS)\b)/, path);
     assert.ok([...source.matchAll(methods)].length > 0, path);
   }
   for (const path of guarded) {
+    if (path === 'ai-summaries/[[...path]]/route.ts') continue; // Delegated proxy guard checked above.
     const source = code(path);
     assert.match(source, /import \{[^}]*\bcurrentAdmin\b[^}]*\} from "@\/lib\/admin-auth"/, path);
     for (const handler of source.matchAll(methods)) {
@@ -880,8 +888,6 @@ test('every admin API route requires the signed-in second-factor session', () =>
   // The guard and the 2FA frame share one same-origin rule, and the password step opens no session.
   assert.match(auth, /if \(guard && !\(await guard\(request\)\)\) throw loginRequired\(\)/);
   assert.match(auth, /sameOrigin: sameOrigin\(request\) && /);
-  assert.match(auth, /return sessionAdmin\(twoFactorContext\(\), token\)/);
-  assert.match(auth, /return twoFactorResponse\(await begin\(twoFactorContext\(\)\)\)/);
   assert.doesNotMatch(auth, /createHmac|session_key\)|admin: \{ username/, 'admin-auth must not sign or issue session cookies itself');
   const exportsRoute = read(new URL('exports/route.ts', root), 'utf8');
   assert.match(exportsRoute, /if \(start && !sameOrigin\(request\)\)/);

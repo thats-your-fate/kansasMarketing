@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /** Owner controller only: bounded private stdin. Never pass or log the seed in argv. */
-import {readFile} from "node:fs/promises"
+import {adminCredentials} from "../lib/admin-credentials.mjs"
 import {importSharedAuthenticator} from "../lib/admin-totp.mjs"
 
 async function main() {
@@ -15,7 +15,8 @@ async function main() {
   }
   const request = JSON.parse(Buffer.concat(chunks).toString("utf8"))
   if (!request || Object.keys(request).sort().join(",") !== "transfer,username") throw new Error("Invalid private request")
-  const credentials = JSON.parse(await readFile(process.env.KANSAS_ADMIN_CREDENTIALS_FILE || "/home/yaro/.config/future-wells/kansas-admin.json", "utf8"))
+  const credentials = await adminCredentials(request.username)
+  if (!credentials) throw new Error("Unknown administrator")
   const context = {
     env: process.env,
     sharedProvisioningRequired: true,

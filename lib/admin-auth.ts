@@ -1,9 +1,9 @@
 import { scrypt as deriveKey, timingSafeEqual } from "node:crypto"
-import { readFile } from "node:fs/promises"
 import { promisify } from "node:util"
 import { NextRequest, NextResponse } from "next/server"
 import { verifyAdminTurnstile } from "./admin-turnstile"
-import { TwoFactorFailure, begin, loginRequired, sessionAdmin, signOut, unavailable, type TwoFactorContext, type TwoFactorCookie, type TwoFactorRequest, type TwoFactorResult } from "./admin-totp.mjs"
+import { adminCredentials, cookieUsername, type AdminCredentials } from "./admin-credentials.mjs"
+import { TwoFactorFailure, begin, enrollStart, enrollConfirm, verify, loginRequired, sessionAdmin, signOut, unavailable, type TwoFactorContext, type TwoFactorCookie, type TwoFactorRequest, type TwoFactorResult } from "./admin-totp.mjs"
 
 const scrypt = promisify(deriveKey)
 const cookieName = "fw_ks_admin"
@@ -11,11 +11,6 @@ const cookieName = "fw_ks_admin"
 const challengeCookieName = "fw_ks_admin_2fa"
 const challengeCookiePath = "/api/admin/auth"
 export const privateHeaders = { "Cache-Control": "private, no-store", "X-Robots-Tag": "noindex, nofollow" }
-type Credentials = { username: string; role: "superadmin"; salt: string; password_hash: string; session_key: string }
-
-async function credentials(): Promise<Credentials> {
-  return JSON.parse(await readFile(process.env.KANSAS_ADMIN_CREDENTIALS_FILE || "/home/yaro/.config/future-wells/kansas-admin.json", "utf8"))
-}
 
 function equal(a: string, b: string) {
   const left = Buffer.from(a)
@@ -32,13 +27,18 @@ export function sameOrigin(request: NextRequest) {
   return allowed.includes(origin)
 }
 
-async function passwordMatches(password: string, config: Credentials, maxLength = 256) {
+async function passwordMatches(password: string, config: AdminCredentials, maxLength = 256) {
   if (!password || password.length > maxLength) return false
   return equal((await scrypt(password, config.salt, 64) as Buffer).toString("hex"), config.password_hash)
 }
 
 /** What the second factor needs from this site: environment, clock, the account and its password check. */
-export function twoFactorContext(): TwoFactorContext {
+export function twoFactorContext(username?: string): TwoFactorContext {
+  async function credentials() {
+    const account = await adminCredentials(username)
+    if (!account) throw loginRequired()
+    return account
+  }
   return {
     env: process.env,
     sharedProvisioningRequired: true,
@@ -61,7 +61,9 @@ export function twoFactorContext(): TwoFactorContext {
 export async function currentAdmin(request: NextRequest) {
   const token = request.cookies.get(cookieName)?.value
   if (!token || token.length > 2048) return null
-  return sessionAdmin(twoFactorContext(), token)
+  const username = cookieUsername(token)
+  if (username !== undefined && !(await adminCredentials(username))) return null
+  return sessionAdmin(twoFactorContext(username), token)
 }
 
 function setCookie(response: NextResponse, name: string, path: string, value: TwoFactorCookie) {
@@ -127,7 +129,10 @@ export async function twoFactorRoute(request: NextRequest, handler: (context: Tw
       if (text === null) return NextResponse.json({ error: { code: "request_too_large", message: "Request too large." } }, { status: 413, headers: privateHeaders })
       try { input = JSON.parse(text) } catch { input = null }
     }
-    return twoFactorResponse(await handler(twoFactorContext(), {
+    const signInStage = handler === verify || handler === enrollStart || handler === enrollConfirm
+    const token = signInStage ? request.cookies.get(challengeCookieName)?.value
+      : request.cookies.get(cookieName)?.value || request.cookies.get(challengeCookieName)?.value
+    return twoFactorResponse(await handler(twoFactorContext(cookieUsername(token)), {
       // Same rule as every other state-changing admin request, plus the browser's own cross-site signal.
       sameOrigin: sameOrigin(request) && request.headers.get("sec-fetch-site")?.toLowerCase() !== "cross-site",
       session: request.cookies.get(cookieName)?.value,
@@ -160,20 +165,21 @@ export async function login(request: NextRequest) {
   const username = typeof body?.username === "string" ? body.username.trim().toLowerCase() : ""
   const password = typeof body?.password === "string" ? body.password : ""
   if (!password || password.length > 256) return NextResponse.json({ error: "Invalid username or password" }, { status: 401, headers: privateHeaders })
-  const config = await credentials()
-  const passwordValid = await passwordMatches(password, config)
-  if (!passwordValid || !equal(username, config.username)) return NextResponse.json({ error: "Invalid username or password" }, { status: 401, headers: privateHeaders })
+  const config = await adminCredentials(username)
+  if (!config || !(await passwordMatches(password, config))) return NextResponse.json({ error: "Invalid username or password" }, { status: 401, headers: privateHeaders })
   attempts.delete(ip)
   // The password is only the first factor: this never signs in. It hands the browser a
   // short-lived challenge; a session exists only after the authenticator step succeeds.
-  try { return twoFactorResponse(await begin(twoFactorContext())) }
+  try { return twoFactorResponse(await begin(twoFactorContext(username))) }
   catch (error) { return twoFactorFailure(error) }
 }
 
 /** Clears both cookies and revokes the session on the server; a storage failure still clears the cookies. */
 export async function logout(request: NextRequest) {
   try {
-    return twoFactorResponse(await signOut(twoFactorContext(), { session: request.cookies.get(cookieName)?.value, challenge: request.cookies.get(challengeCookieName)?.value }))
+    const session = request.cookies.get(cookieName)?.value
+    const challenge = request.cookies.get(challengeCookieName)?.value
+    return twoFactorResponse(await signOut(twoFactorContext(cookieUsername(session || challenge)), { session, challenge }))
   } catch (error) {
     const response = twoFactorFailure(error)
     setCookie(response, cookieName, "/", null)
